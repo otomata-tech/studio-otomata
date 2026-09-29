@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <!--
-  plaquette-oto.html : plaquette commerciale de la plateforme oto (A4 recto, charte oto.cx).
-  Narratif v2 (inspiré démo Mathilde/Chloé 15/07) : du POC individuel au process d'équipe.
+  plaquette-oto.html : plaquette commerciale Otomata + oto (A4 recto-verso, charte oto.cx).
+  Lecteur : un dirigeant de PME ou d'ETI, à qui un prescripteur la transmet.
+  Narratif v3 (29/09/2026) : accompagnement + plateforme — partir d'une tâche, construire l'agent,
+  le laisser en place ; la valeur d'oto est le contexte de l'entreprise, pas le script d'API.
+  Recto : démarche, plateforme, tarifs. Verso : cas d'usage.
+  Tarifs : TJM et diagnostic (oto #68 doc 193), plan oto à 25 € HT/membre/mois (arbitrage 23/09, oto-backend#806).
+  Cas d'usage : textes externes et illustrations du site (oto-website web/src/data/use-cases/cas/,
+  web/public/cas-usage/cas/), mêmes règles que le site (oto #68 doc 1787) : aucun client nommé,
+  ni sous périphrase ; un gain n'est chiffré que s'il a été mesuré (`gainMesure`).
   Rendu PDF :
     google-chrome - -headless - -user-data-dir=/tmp/oto-plaquette-chrome \
-      - -no-pdf-header-footer - -print-to-pdf=out/plaquette-oto.pdf plaquette-oto.html
+      - -no-pdf-header-footer - -print-to-pdf=out/plaquettes/plaquette-oto.pdf plaquette-oto.html
+  Variante sans tarifs (document laissé à un tiers) : même commande sur « plaquette-oto.html?sans-tarifs »,
+  sortie out/plaquettes/plaquette-oto-sans-tarifs.pdf. Chaque chiffre porte son texte de repli en data-sans.
   (retirer l'espace dans les "- -", échappé ici pour le commentaire HTML)
 -->
 <html lang="fr">
@@ -27,15 +36,18 @@
   @page{ size:A4; margin:0; }
   *{ margin:0; padding:0; box-sizing:border-box; }
   html,body{ background:var(--bg); }
-  body{
-    width:210mm; height:296mm; overflow:hidden;
-    font-family:var(--sans); color:var(--ink);
+  body{ font-family:var(--sans); color:var(--ink); -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page{
+    width:210mm; height:297mm; overflow:hidden; break-after:page;
     display:flex; flex-direction:column;
     padding:11mm 14mm 8mm;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
+  .page:last-child{ break-after:auto; }
   .eyebrow{ font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); }
   .kicker{ font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--terra); }
+  section{ margin-top:5.5mm; }
+  .shead{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2.6mm; }
+  .shead h2{ font-size:15px; font-weight:600; letter-spacing:-0.01em; }
 
   /* ── header ── */
   header{ display:flex; align-items:flex-end; justify-content:space-between; padding-bottom:4.5mm; border-bottom:1.5px solid var(--ink); }
@@ -44,55 +56,69 @@
   .baseline{ margin-top:2.5mm; font-size:12.5px; color:var(--ink-soft); }
   .coords{ text-align:right; font-family:var(--mono); font-size:9.5px; line-height:1.8; color:var(--mute); }
   .coords strong{ color:var(--ink); font-weight:600; }
+  header.run{ padding-bottom:3mm; }
+  header.run .wordmark{ font-size:22px; }
 
   /* ── hero ── */
-  .hero{ padding:5mm 0 4.5mm; }
-  .hero h1{ font-size:24px; font-weight:600; letter-spacing:-0.015em; line-height:1.15; max-width:172mm; }
+  .hero{ margin-top:0; padding-top:6mm; }
+  .hero h1{ margin-top:2.6mm; font-size:26px; font-weight:600; letter-spacing:-0.015em; line-height:1.15; }
   .hero h1 em{ font-style:normal; color:var(--saffron-ink); }
-  .hero p{ margin-top:3mm; font-size:11px; line-height:1.55; color:var(--ink-soft); max-width:174mm; }
+  .hero p{ margin-top:3.4mm; font-size:11.2px; line-height:1.6; color:var(--ink-soft); max-width:176mm; }
+  .hero p + p{ margin-top:2.2mm; }
   .hero p strong{ font-weight:600; color:var(--ink); }
 
-  /* ── preuves ── */
-  .proofs{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
-  .proof{ background:var(--surface); border:1px solid var(--hair); border-left:2.5px solid var(--terra); border-radius:10px; padding:4.2mm 5mm 4mm; display:flex; flex-direction:column; }
-  .proof .num{ font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:.2em; color:var(--terra); }
-  .proof h2{ margin-top:1.8mm; font-size:13px; font-weight:600; letter-spacing:-0.01em; }
-  .proof p{ margin-top:1.8mm; font-size:9.5px; line-height:1.5; color:var(--ink-soft); flex:1; }
-  .proof .tag{ margin-top:2.4mm; font-family:var(--mono); font-size:8px; color:var(--mute); }
-
-  /* ── piliers ── */
-  .pillars{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:4mm; margin-top:4mm; }
-  .card{ background:var(--surface); border:1px solid var(--hair); border-radius:10px; padding:4.2mm 4.5mm 4mm; display:flex; flex-direction:column; }
+  /* ── cartes ── */
+  .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:4mm; }
+  .card{ background:var(--surface); border:1px solid var(--hair); border-radius:10px; padding:4mm 4.5mm; display:flex; flex-direction:column; }
   .card .num{ font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:.18em; color:var(--terra); }
-  .card h2{ margin-top:1.8mm; font-size:12.5px; font-weight:600; letter-spacing:-0.01em; }
-  .card p{ margin-top:1.8mm; font-size:9.5px; line-height:1.5; color:var(--ink-soft); flex:1; }
+  .card h3{ margin-top:1.8mm; font-size:13px; font-weight:600; letter-spacing:-0.01em; line-height:1.25; }
+  .card p{ margin-top:1.8mm; font-size:9.6px; line-height:1.55; color:var(--ink-soft); flex:1; }
+  .steps .card{ background:var(--paper2); border-color:transparent; }
 
-  /* ── bandeau souveraineté ── */
-  .facts{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:3mm; margin-top:4mm; }
-  .fact{ background:var(--paper2); border-radius:8px; padding:2.4mm 3.2mm; }
-  .fact .v{ font-family:var(--mono); font-size:9px; font-weight:700; color:var(--ink); }
-  .fact .l{ margin-top:0.8mm; font-family:var(--mono); font-size:7.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); line-height:1.5; }
-
-  /* ── grille tarifaire ── */
-  .pricing{ margin-top:4mm; }
-  .pricing .head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2.4mm; }
-  .pricing .head h2{ font-size:14px; font-weight:600; letter-spacing:-0.01em; }
+  /* ── tarifs ── */
+  .prices{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
   .table{ background:var(--surface); border:1px solid var(--hair); border-radius:10px; overflow:hidden; }
-  .trow{ display:grid; grid-template-columns:1.1fr 2fr 0.8fr; padding:2.2mm 5mm; border-bottom:1px solid var(--hair-soft); align-items:baseline; }
+  .table .thead{ background:var(--bg); padding:2.2mm 4.5mm; border-bottom:1px solid var(--hair); display:flex; justify-content:space-between; align-items:baseline; }
+  .table .thead .t{ font-size:12px; font-weight:600; }
+  .trow{ display:grid; grid-template-columns:1fr auto; gap:3mm; padding:2.3mm 4.5mm; border-bottom:1px solid var(--hair-soft); align-items:baseline; }
   .trow:last-child{ border-bottom:0; }
-  .trow.thead{ background:var(--bg); padding:1.9mm 5mm; border-bottom:1px solid var(--hair); }
-  .trow .plan{ font-size:11px; font-weight:600; }
-  .trow .scope{ font-size:9.5px; color:var(--mute); }
-  .trow .price{ font-family:var(--mono); font-size:10.5px; font-weight:700; text-align:right; }
+  .trow .plan{ font-size:10.8px; font-weight:600; }
+  .trow .scope{ display:block; margin-top:0.6mm; font-size:9px; font-weight:400; color:var(--mute); line-height:1.4; }
+  .trow .price{ font-family:var(--mono); font-size:10.2px; font-weight:700; text-align:right; white-space:nowrap; }
   .trow .price.free{ color:var(--olive-ink); }
-  .tnote{ margin-top:1.8mm; font-family:var(--mono); font-size:8.5px; color:var(--faint); }
+  .tnote{ margin-top:1.8mm; font-family:var(--mono); font-size:8px; color:var(--faint); }
 
-  /* ── accompagnement ── */
-  .accomp{ margin-top:3.5mm; background:var(--olive-soft); border-radius:10px; padding:3.2mm 5mm; display:flex; align-items:baseline; gap:4mm; }
-  .accomp .eyebrow{ color:var(--olive-ink); white-space:nowrap; }
-  .accomp p{ font-size:10px; line-height:1.5; color:var(--ink-soft); }
+  /* ── partenaires ── */
+  .partners{ background:var(--olive-soft); border-radius:10px; padding:3.2mm 5mm; display:flex; align-items:baseline; gap:4mm; }
+  .partners .eyebrow{ color:var(--olive-ink); white-space:nowrap; }
+  .partners p{ font-size:10px; line-height:1.5; color:var(--ink-soft); }
 
-  /* ── footer légal ── */
+  /* ── cas détaillés (verso) ── */
+  .cases{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+  .case{ background:var(--surface); border:1px solid var(--hair); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; }
+  .case img{ display:block; width:100%; height:33mm; object-fit:contain; background:var(--bg); border-bottom:1px solid var(--hair-soft); }
+  .case .body{ padding:3mm 4.2mm 3.2mm; display:flex; flex-direction:column; flex:1; }
+  .case .num{ font-family:var(--mono); font-size:7.8px; font-weight:700; letter-spacing:.18em; color:var(--terra); }
+  .case h3{ margin-top:1.2mm; font-size:12.5px; font-weight:600; letter-spacing:-0.01em; line-height:1.25; }
+  .case .ba{ margin-top:1.8mm; display:grid; grid-template-columns:auto 1fr; gap:0.8mm 2.4mm; font-size:9px; line-height:1.45; }
+  .case .ba dt{ font-family:var(--mono); font-size:7.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); padding-top:0.3mm; }
+  .case .ba dd{ color:var(--ink-soft); }
+  .case .gain{ margin-top:auto; background:var(--saffron-soft); border-radius:6px; padding:1.6mm 2.6mm; font-size:9.2px; line-height:1.45; color:var(--saffron-ink); }
+  .case .ba + .gain{ margin-top:2mm; }
+  .case .gain strong{ font-weight:700; }
+  .case .start{ margin-top:1.8mm; font-family:var(--mono); font-size:7.8px; line-height:1.5; color:var(--mute); }
+
+  /* ── et aussi ── */
+  .more{ display:grid; grid-template-columns:repeat(4,1fr); gap:3.5mm; }
+  .col{ background:var(--paper2); border-radius:10px; padding:3mm 3.6mm; }
+  .col .eyebrow{ font-size:7.8px; letter-spacing:.16em; color:var(--terra); }
+  .col ul{ list-style:none; margin-top:1.6mm; }
+  .col li{ padding:1.4mm 0; border-top:1px solid var(--hair); }
+  .col li:first-child{ border-top:0; }
+  .col li b{ display:block; font-size:9.4px; font-weight:600; line-height:1.3; }
+  .col li span{ display:block; margin-top:0.5mm; font-size:8.4px; line-height:1.4; color:var(--ink-soft); }
+
+  /* ── footer ── */
   footer{ margin-top:auto; padding-top:3.5mm; border-top:1px solid var(--hair); display:flex; justify-content:space-between; align-items:flex-end; }
   footer .legal{ font-family:var(--mono); font-size:8px; line-height:1.7; color:var(--faint); }
   footer .cta{ text-align:right; font-size:11px; font-weight:600; }
@@ -102,102 +128,102 @@
 </head>
 <body>
 
+<!-- ═════════════ RECTO ═════════════ -->
+<div class="page">
+
   <header>
     <div>
       <div class="wordmark">oto<span class="dot">.</span></div>
-      <div class="baseline">La plateforme de connecteurs pour agents IA · éditée par <strong>Otomata</strong></div>
+      <div class="baseline">L'IA au travail dans votre entreprise · par <strong>Otomata</strong>, Marseille</div>
     </div>
     <div class="coords">
-      <strong>oto.cx</strong> · manage.oto.cx<br>
+      <strong>otomata.tech</strong> · oto.cx<br>
       alexis@otomata.tech<br>
       Marseille, France
     </div>
   </header>
 
   <section class="hero">
-    <div class="kicker">De la démo à la production</div>
-    <h1 style="margin-top:2.4mm;">Votre IA sait déjà faire le travail.<br>oto le met entre les mains de <em>votre équipe</em>.</h1>
-    <p>Claude, ChatGPT ou Mistral font des merveilles en démo&nbsp;: enrichir des leads, rapprocher la compta, préparer
-       les briefs. Puis vient le vrai sujet&nbsp;: <strong>le donner à l'équipe</strong> — sans installer Python sur le poste
-       de la comptable, sans clés d'API qui traînent, sans reconfigurer chaque poste un par un. Ce chaînon manquant,
-       c'est oto&nbsp;: un seul connecteur à ajouter dans l'assistant de chacun, et derrière, les outils de l'entreprise,
-       les procédures partagées et un coffre à secrets.</p>
+    <div class="kicker">Accompagnement IA des dirigeants</div>
+    <h1>Votre IA sait rédiger, chercher, résumer.<br>Il lui manque <em>votre entreprise</em>.</h1>
+    <p>Claude, ChatGPT ou Mistral ne connaissent ni vos clients, ni vos devis, ni la façon dont votre équipe travaille.
+       Nous partons d'une tâche qui vous coûte du temps chaque semaine, nous construisons l'agent qui la prend en charge,
+       et nous le laissons en place dans l'assistant que vos équipes utilisent déjà.</p>
+    <p><strong>Pas un plan de transformation&nbsp;: une tâche réglée en quelques jours, puis la suivante.</strong>
+       Au verso, des exemples de ce que ça donne.</p>
   </section>
 
-  <section class="proofs">
-    <div class="proof">
-      <div class="num">VÉCU 01 — PROSPECTION</div>
-      <h2>20 fois plus de leads qualifiés, en une journée</h2>
-      <p>Un éditeur de logiciel de 80 personnes, 12 000 leads dormants dans le CRM. Un agent les recoupe avec les
-         données entreprise France et LinkedIn, écarte les doublons, et livre pour chacun une fiche prête à
-         l'appel&nbsp;: contexte, actualités, points de contact.</p>
-      <div class="tag">CRM · données entreprise France · LinkedIn · enrichissement</div>
-    </div>
-    <div class="proof">
-      <div class="num">VÉCU 02 — FINANCE</div>
-      <h2>Le jeudi matin de la comptable, automatisé</h2>
-      <p>Chaque semaine, une demi-journée à rapprocher les échecs de prélèvement entre trois outils. La procédure a
-         été rédigée à partir d'un simple entretien ; l'agent l'exécute pas à pas, supervisé et tracé — et toute
-         l'équipe peut la rejouer.</p>
-      <div class="tag">compta · prélèvements bancaires · backoffice métier</div>
-    </div>
-  </section>
-
-  <section class="pillars">
-    <div class="card">
-      <div class="num">01 — UN SEUL GESTE</div>
-      <h2>Une multiprise pour votre IA</h2>
-      <p>Le collaborateur ajoute un connecteur — oto — dans son assistant, et c'est tout. Derrière&nbsp;: le catalogue
-         de l'entreprise (CRM, e-mail, compta, LinkedIn, données entreprise France…), activé selon ses droits.
-         Même geste dans Claude, ChatGPT, Mistral ou Copilot.</p>
-    </div>
-    <div class="card">
-      <div class="num">02 — PROCÉDURES PARTAGÉES</div>
-      <h2>Le savoir-faire, sanctuarisé</h2>
-      <p>Un process décrit une fois devient une procédure que chaque agent exécute de la même façon, pour tout le
-         monde. Partagée par équipe, amendée au fil de l'usage, chaque appel d'outil tracé&nbsp;: on sait ce que l'IA
-         a fait, et pourquoi.</p>
-    </div>
-    <div class="card">
-      <div class="num">03 — CONTRÔLE PHYSIQUE</div>
-      <h2>Pas des consignes&nbsp;: des permissions</h2>
-      <p>On ne compte pas sur l'IA pour respecter des instructions. Le connecteur applique les droits&nbsp;: champs
-         filtrés, données personnelles masquées avant le LLM, secrets d'API chiffrés dans un coffre — invisibles,
-         même pour l'administrateur.</p>
-    </div>
-  </section>
-
-  <section class="facts">
-    <div class="fact"><div class="v">1 connecteur</div><div class="l">pour toute l'entreprise</div></div>
-    <div class="fact"><div class="v">hébergé en France</div><div class="l">on-premise possible</div></div>
-    <div class="fact"><div class="v">open source</div><div class="l">de bout en bout, auditable</div></div>
-    <div class="fact"><div class="v">chaque appel tracé</div><div class="l">usage reconstituable</div></div>
-  </section>
-
-  <section class="pricing">
-    <div class="head">
-      <h2>Grille tarifaire — abonnements oto</h2>
-      <span class="eyebrow">prix HT / mois / organisation</span>
-    </div>
-    <div class="table">
-      <div class="trow thead">
-        <span class="eyebrow">palier</span>
-        <span class="eyebrow">pour qui</span>
-        <span class="eyebrow" style="text-align:right;">prix</span>
+  <section class="steps">
+    <div class="shead"><h2>Comment nous travaillons</h2><span class="eyebrow">une tâche à la fois</span></div>
+    <div class="grid3">
+      <div class="card">
+        <div class="num">01 — PARTIR DU TERRAIN</div>
+        <h3>Une tâche, pas un plan</h3>
+        <p>Un entretien avec vous ou la personne concernée&nbsp;: quelle tâche revient chaque semaine, prend des heures,
+           pèse sur tout le monde&nbsp;? C'est elle que nous traitons en premier.</p>
       </div>
-      <div class="trow"><span class="plan">Gratuit</span><span class="scope">découvrir oto et brancher ses premiers connecteurs</span><span class="price free">0 €</span></div>
-      <div class="trow"><span class="plan">Solo</span><span class="scope">un indépendant, un compte de messagerie connecté</span><span class="price">49 €</span></div>
-      <div class="trow"><span class="plan">Team</span><span class="scope">une équipe, jusqu'à 10 comptes de messagerie connectés</span><span class="price">250 €</span></div>
-      <div class="trow"><span class="plan">Business</span><span class="scope">une organisation, jusqu'à 50 comptes de messagerie connectés</span><span class="price">500 €</span></div>
-      <div class="trow"><span class="plan">Entreprise</span><span class="scope">périmètre dédié, volumes et intégrations spécifiques</span><span class="price">sur devis</span></div>
+      <div class="card">
+        <div class="num">02 — CONSTRUIRE</div>
+        <h3>Un agent en 0,5 à 2 jours</h3>
+        <p>Nous branchons vos outils et écrivons la procédure avec celui qui fait le travail. L'agent la suit pas à pas&nbsp;;
+           nous le testons sur vos vrais dossiers, et vous relisez avant qu'il agisse.</p>
+      </div>
+      <div class="card">
+        <div class="num">03 — LAISSER EN PLACE</div>
+        <h3>Vos équipes, autonomes</h3>
+        <p>L'agent vit dans oto, notre plateforme, à la disposition de toute l'équipe. Chaque nouvel usage s'ajoute au même
+           socle&nbsp;: le deuxième agent coûte moins que le premier.</p>
+      </div>
     </div>
-    <div class="tnote">Prix hors taxes, TVA en sus. Détail des paliers au moment de la commande sur manage.oto.cx · CGV&nbsp;: oto.cx/cgv.</div>
   </section>
 
-  <section class="accomp">
-    <span class="eyebrow">Accompagnement</span>
-    <p>La configuration des connecteurs et l'écriture des premières procédures se font avec un accompagnant —
-       Otomata, l'éditeur de la plateforme, ou l'un de ses partenaires. Distinct de l'abonnement, sur devis.</p>
+  <section>
+    <div class="shead"><h2>Ce que fait oto</h2><span class="eyebrow">la plateforme qui reste en place</span></div>
+    <div class="grid3">
+      <div class="card">
+        <div class="num">01 — LE CONTEXTE</div>
+        <h3>Votre entreprise, au même endroit</h3>
+        <p>Procédures, pages de dossier, tableaux de suivi&nbsp;: le savoir de l'entreprise est rangé dans oto, et l'IA y
+           cherche au lieu de deviner. Ce qu'un collaborateur apprend à l'agent profite à tous.</p>
+      </div>
+      <div class="card">
+        <div class="num">02 — UN SEUL CONNECTEUR</div>
+        <h3>Tous vos outils, un seul geste</h3>
+        <p>Un connecteur à ajouter dans Claude, ChatGPT, Mistral ou Copilot, et derrière, une centaine de services&nbsp;:
+           messagerie, agenda, drive, Pennylane, CRM, Slack, WhatsApp, données entreprises… selon les droits de chacun.</p>
+      </div>
+      <div class="card">
+        <div class="num">03 — LA MAÎTRISE</div>
+        <h3>Des permissions, pas des consignes</h3>
+        <p>Les clés d'accès restent dans un coffre chiffré, jamais dans la conversation. Les données sensibles sont masquées
+           avant l'IA, chaque action est tracée. Hébergé en France, code ouvert.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2 data-sans="Formats">Tarifs</h2><span class="eyebrow" data-sans="tarifs sur demande">prix hors taxes</span></div>
+    <div class="prices">
+      <div class="table">
+        <div class="thead"><span class="t">Accompagnement</span><span class="eyebrow">Otomata</span></div>
+        <div class="trow"><span class="plan">Journée d'accompagnement<span class="scope">construction d'agents, ateliers, suivi du dirigeant</span></span><span class="price" data-sans="à la journée">1&nbsp;000 € / jour</span></div>
+        <div class="trow"><span class="plan">Un agent métier<span class="scope">une tâche réglée, de l'entretien à la mise en service</span></span><span class="price">0,5 à 2 jours</span></div>
+        <div class="trow"><span class="plan">Diagnostic<span class="scope">10 entretiens, débrief et feuille de route</span></span><span class="price" data-sans="10 entretiens">5&nbsp;000 €</span></div>
+      </div>
+      <div class="table">
+        <div class="thead"><span class="t">Plateforme oto</span><span class="eyebrow">abonnement</span></div>
+        <div class="trow"><span class="plan">Gratuit<span class="scope">membres illimités, pour démarrer</span></span><span class="price free" data-sans="gratuit">0 €</span></div>
+        <div class="trow"><span class="plan">Équipe<span class="scope">tout oto, sans engagement</span></span><span class="price" data-sans="par membre">25 € / membre / mois</span></div>
+        <div class="trow"><span class="plan">Grands comptes<span class="scope">instance dédiée, on-premise possible</span></span><span class="price">sur contrat</span></div>
+      </div>
+    </div>
+    <div class="tnote" data-sans="conditions générales&nbsp;: oto.cx/cgv">TVA en sus · conditions générales&nbsp;: oto.cx/cgv</div>
+  </section>
+
+  <section class="partners">
+    <span class="eyebrow">ETI et grands groupes</span>
+    <p>Sur les périmètres plus larges, nous intervenons avec nos partenaires, notamment en conduite du changement&nbsp;:
+       l'outil ne sert que si les équipes se l'approprient.</p>
   </section>
 
   <footer>
@@ -207,10 +233,136 @@
       Assurance RC professionnelle&nbsp;: Hiscox (police RCPH278533033)
     </div>
     <div class="cta">
-      <a href="https://manage.oto.cx">créer un compte → manage.oto.cx</a>
-      <div class="sub">l'inscription est ouverte · le code est sur github</div>
+      <a href="mailto:alexis@otomata.tech">parlons d'une tâche → alexis@otomata.tech</a>
+      <div class="sub">Alexis Laporte, fondateur</div>
     </div>
   </footer>
+
+</div>
+
+<!-- ═════════════ VERSO ═════════════ -->
+<div class="page">
+
+  <header class="run">
+    <div class="wordmark">oto<span class="dot">.</span></div>
+    <div class="coords">des cas concrets · <strong>oto.cx/cas-usage</strong></div>
+  </header>
+
+  <section class="hero" style="padding-top:3.5mm;">
+    <div class="kicker">Chez nos clients, en service ou en test réel</div>
+    <h1 style="font-size:21px;">Quatre tâches qui ont quitté le bureau.</h1>
+  </section>
+
+  <section class="cases" style="margin-top:3mm;">
+    <div class="case">
+      <img src="../assets/cas-usage/prelevements-echoues.webp" alt="">
+      <div class="body">
+        <div class="num">FINANCE · ÉDITEUR DE LOGICIEL</div>
+        <h3>Les prélèvements échoués, traités avant le café</h3>
+        <dl class="ba">
+          <dt>Avant</dt><dd>Chaque semaine, des rejets à pointer un par un, à rapprocher, à relancer.</dd>
+          <dt>L'agent</dt><dd>Lit les rejets, les rapproche des clients, applique vos règles de relance et de nouvelle présentation, prépare les écritures.</dd>
+        </dl>
+        <div class="gain"><strong>Mesuré&nbsp;: deux heures par semaine ramenées à dix minutes.</strong> Agent construit en une demi-journée.</div>
+        <div class="start">pour démarrer · vos règles de relance, écrites une fois</div>
+      </div>
+    </div>
+    <div class="case">
+      <img src="../assets/cas-usage/fiche-visite-depuis-audio.webp" alt="">
+      <div class="body">
+        <div class="num">TERRAIN · BÂTIMENT</div>
+        <h3>Vous parlez avec le client&nbsp;; la fiche de visite s'écrit seule</h3>
+        <dl class="ba">
+          <dt>Avant</dt><dd>Le compte rendu écrit de tête le soir, les détails mélangés entre bâtiments.</dd>
+          <dt>L'agent</dt><dd>Transcrit l'enregistrement du téléphone avec le vocabulaire du métier, puis rédige une fiche par bâtiment&nbsp;: travaux, matériaux, décisions, ce qui manque pour le devis.</dd>
+        </dl>
+        <div class="gain"><strong>Mesuré sur une visite réelle de 28 minutes&nbsp;:</strong> un tiers de mots restitués de plus qu'un enregistreur grand public, aucun échange perdu, 0,08&nbsp;€ de transcription.</div>
+        <div class="start">pour démarrer · enregistrer dès le début de la discussion</div>
+      </div>
+    </div>
+    <div class="case">
+      <img src="../assets/cas-usage/devis-depuis-releve.webp" alt="">
+      <div class="body">
+        <div class="num">COMMERCIAL · BÂTIMENT</div>
+        <h3>Le devis sort du relevé&nbsp;; vous relisez au lieu de saisir</h3>
+        <dl class="ba">
+          <dt>Avant</dt><dd>Des heures à choisir les ouvrages et à tout ressaisir dans le logiciel de devis.</dd>
+          <dt>L'agent</dt><dd>Lit le relevé, déduit les longueurs qui manquent et prépare les lignes dans votre bibliothèque d'ouvrages, chaque ligne déduite marquée comme telle.</dd>
+        </dl>
+        <div class="gain"><strong>Le chiffrage devient une relecture&nbsp;:</strong> un fichier prêt à importer, avec les hypothèses listées à vérifier.</div>
+        <div class="start">pour démarrer · votre bibliothèque d'ouvrages et trois devis récents</div>
+      </div>
+    </div>
+    <div class="case">
+      <img src="../assets/cas-usage/enrichissement-base.webp" alt="">
+      <div class="body">
+        <div class="num">PROSPECTION · ÉDITION</div>
+        <h3>Des milliers de comptes qualifiés, chaque fait avec sa source</h3>
+        <dl class="ba">
+          <dt>Avant</dt><dd>Une base de milliers de comptes à moitié vide, qualifiée à la main.</dd>
+          <dt>L'agent</dt><dd>Une équipe d'agents traite la base ligne par ligne, sous une règle stricte&nbsp;: une case vide vaut mieux qu'une valeur inventée.</dd>
+        </dl>
+        <div class="gain"><strong>Des milliers de fiches enrichies et sourcées en quelques jours.</strong></div>
+        <div class="start">pour démarrer · quoi chercher, où, et quand laisser vide</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><h2>Et aussi, sur le même socle</h2><span class="eyebrow">une tâche = un agent</span></div>
+    <div class="more">
+      <div class="col">
+        <div class="eyebrow">Commercial</div>
+        <ul>
+          <li><b>Demandes entrantes</b><span>Chaque demande reçoit une réponse dans l'heure.</span></li>
+          <li><b>Préparer un rendez-vous</b><span>Arriver en connaissant déjà tout le dossier.</span></li>
+          <li><b>Veille des appels d'offres</b><span>Les consultations qui vous concernent, résumées chaque matin.</span></li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="eyebrow">Suivi et gestion</div>
+        <ul>
+          <li><b>Une page par client</b><span>Tout le dossier sur une page, que n'importe qui reprend.</span></li>
+          <li><b>Relance des impayés</b><span>Chaque facture échue relancée, au bon interlocuteur.</span></li>
+          <li><b>Trésorerie</b><span>Vos chiffres à jour, en posant la question comme à un comptable.</span></li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="eyebrow">Bureau</div>
+        <ul>
+          <li><b>Triage de la boîte mail</b><span>Triée chaque matin, les dossiers à jour sans ressaisie.</span></li>
+          <li><b>Compte rendu de réunion</b><span>Les décisions écrites dans l'heure, les actions suivies.</span></li>
+          <li><b>Questions internes</b><span>La réponse avec sa source, sans interrompre un collègue.</span></li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="eyebrow">Terrain</div>
+        <ul>
+          <li><b>Relevé minimal</b><span>Quatre cotes au lieu de vingt-cinq&nbsp;: l'agent déduit le reste.</span></li>
+          <li><b>Contrôle de devis</b><span>Chaque écart expliqué, la règle corrigée pour la fois suivante.</span></li>
+          <li><b>Publications réseaux</b><span>Une présence régulière à partir de vos chantiers.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="legal">
+      Les gains chiffrés ont été mesurés chez nos clients&nbsp;; les autres sont décrits sans chiffre.<br>
+      Aucun client n'est nommé&nbsp;: les références se partagent de vive voix.
+    </div>
+    <div class="cta">
+      <a href="https://oto.cx/cas-usage">tous les cas → oto.cx/cas-usage</a>
+      <div class="sub">alexis@otomata.tech</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  if (location.search.includes('sans-tarifs'))
+    document.querySelectorAll('[data-sans]').forEach(el => { el.innerHTML = el.dataset.sans })
+</script>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-# oto-studio — visuels de communication oto (LinkedIn)
+# studio-otomata — visuels de communication oto (LinkedIn)
 
 Studio local de création de visuels dans la charte oto.cx : cartes « cas d'usage » animées, affiches « posts produit », plaquettes, bannières. Export MP4/GIF via Chrome headless + ffmpeg.
 

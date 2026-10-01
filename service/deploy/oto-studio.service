@@ -1,6 +1,6 @@
 [Unit]
 Description=oto studio — rendu de visuels (API + IHM)
-Documentation=https://github.com/otomata-tech/oto-studio
+Documentation=https://github.com/otomata-tech/studio-otomata
 After=network-online.target
 Wants=network-online.target
 

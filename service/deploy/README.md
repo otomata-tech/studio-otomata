@@ -41,7 +41,7 @@ parallèle : la pointe du service reste `max(rendu, photo)`, pas leur somme.
 
 ```bash
 # 1. le code
-git clone git@github.com:otomata-tech/oto-studio.git /opt/oto-studio
+git clone git@github.com:otomata-tech/studio-otomata.git /opt/oto-studio
 
 # 2. l'unité
 scp service/deploy/oto-studio.service otomata-0:/tmp/

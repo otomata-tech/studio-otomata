@@ -58,7 +58,7 @@ déclaré à la fois comme `rel="icon"` et comme `logo` du JSON-LD.
 La charte est servie par le studio sur **`studio.oto.zone/brand`** — mark et déclinaisons,
 palette lue dans `theme/theme.css`, typographie, fichiers d'impression du merch, tout
 téléchargeable. C'est cette page qu'on donne à un tiers, plutôt qu'un PDF en pièce jointe.
-Le code : `oto-studio/service/brand.mjs` + `service/web/brand.html`.
+Le code : `studio-otomata/service/brand.mjs` + `service/web/brand.html`.
 
 ## Arborescence
 
@@ -190,4 +190,4 @@ diff -q brand/theme/theme.css /data/oto/oto-websites/packages/ui/src/theme.css
 dashboard n'ont plus de miroir mécanique — leur vie est dans `console.css`, et une évolution de
 charte s'y porte à la main depuis ici.
 
-⚠️ **Ne pas comparer les `THEME.md`** : la copie d'`oto-websites` porte en tête un encart « source de vérité = oto-studio/brand » que l'original n'a pas — ils divergent donc d'un bloc, volontairement. Ce sont `theme.css` et les tokens qui portent les valeurs, et eux doivent rester strictement identiques.
+⚠️ **Ne pas comparer les `THEME.md`** : la copie d'`oto-websites` porte en tête un encart « source de vérité = studio-otomata/brand » que l'original n'a pas — ils divergent donc d'un bloc, volontairement. Ce sont `theme.css` et les tokens qui portent les valeurs, et eux doivent rester strictement identiques.

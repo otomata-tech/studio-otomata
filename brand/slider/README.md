@@ -7,7 +7,7 @@ Charte de slides à l'identité Otomata / Oto : fond crème, encre brune, saffra
 Le repo `slider` ignore `chartes/*` sauf `blank` : les chartes vivent hors du moteur et sont montées dedans. Celle-ci vit ici, dans la source de vérité du design, et se monte par lien symbolique :
 
 ```bash
-ln -sfn /data/oto/oto-studio/brand/slider \
+ln -sfn /data/studio/otomata/brand/slider \
         /data/github/otomata-tech/slider/chartes/otomata
 ```
 

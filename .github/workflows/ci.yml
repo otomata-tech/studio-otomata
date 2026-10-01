@@ -1,6 +1,6 @@
 name: CI
 
-# oto-studio est surtout du CONTENU (design system, gabarits HTML, tokens) plus une
+# studio-otomata est surtout du CONTENU (design system, gabarits HTML, tokens) plus une
 # dizaine de modules ESM sans aucune dépendance externe : pas de tests, pas de
 # package.json, rien à `build`. La plus petite vérification honnête est donc une
 # vérification d'intégrité du contenu, faite par .github/check.mjs — qui dit lui-même

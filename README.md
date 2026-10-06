@@ -124,6 +124,8 @@ saffran, qui est le mark du **produit** oto.
 node plaquettes/build-carte.mjs carte-visite <donnees.json>   # → out/plaquettes/<donnees>.pdf
 node plaquettes/build-carte.mjs carte-voeux  <donnees.json>
 node emails/build-signature.mjs <donnees.json> [...]           # → out/emails/signature-<nom>.html + .png
+node emails/poser-signature.mjs signatures@otomata-workspace.iam.gserviceaccount.com <donnees.json> [...]
+                                                               # pose la signature dans le Gmail de chacun
 ```
 
 - Les **données portent des noms** (coordonnées, message) : elles vivent hors du dépôt, dans `out/plaquettes/`
@@ -139,6 +141,11 @@ node emails/build-signature.mjs <donnees.json> [...]           # → out/emails/
 - **Signature** : HTML de mail (tableaux, styles en ligne, Arial — un client mail ne charge pas nos
   polices) ; le mark est servi par `studio.oto.zone/brand/logo/mark-256.png`. La page générée a un bouton
   qui copie la signature rendue, à coller dans Gmail → Paramètres → Signature.
+- **Pose en admin** (`poser-signature.mjs`) : délégation à l'échelle du domaine **sans clé**. Le compte de
+  service `signatures@otomata-workspace` (créé le 2026-10-06) n'a aucune clé téléchargée : l'admin connecté à
+  gcloud le fait signer (rôle *Créateur de jetons*), et la délégation n'accorde que
+  `gmail.settings.basic` — les réglages, jamais le courrier. ID client autorisé dans la console d'admin :
+  `100164416810955527846`. Un nouveau droit IAM met quelques minutes à se propager (403 sur `signJwt`).
 
 ## Visuels du site — section cas d'usage d'oto.cx (`site/cas-usage/`)
 

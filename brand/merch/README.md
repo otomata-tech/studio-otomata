@@ -14,13 +14,16 @@ Quatorze fichiers, tous en **PNG transparent**, côté long **4000 px**, dans `p
 | Pose | Ce qu'elle porte | Où elle va |
 |---|---|---|
 | **ligne** | le mark, puis **`otomata.tech`** | poitrine (cœur), mug, casquette |
-| **dos** | le mark en grand, **OTOMATA**, un filet, puis **`LA BOÎTE À OUTILS DES AGENTS`** | dos de t-shirt, tote bag |
+| **dos** | le mark en grand, **OTOMATA**, un filet, puis **`STUDIO DE CONCEPTION D’AGENTS IA`** | dos de t-shirt, tote bag |
 | **bande** | le **glyphe colonne**, vertical | bas de vêtement, couture latérale, ourlet |
 | **mark** | le mark seul | sticker rond, broderie |
 | **mot** | **OTOMATA** seul | bandeau (gourde, casquette) |
 
 La phrase du dos est **descriptive à dessein**. Dans le dos d'un inconnu, un clin d'œil interne
-(« un seul branchement ») ne se comprend pas ; un fait, si. Les trois textes vivent en tête de
+(« un seul branchement ») ne se comprend pas ; un fait, si. **Le 2026-10-06, elle est passée de
+« La boîte à outils des agents » à « Studio de conception d'agents IA »** : la première décrivait
+oto, le produit ; le merch porte la marque de la société. C'est aussi la phrase des cartes de
+visite (`plaquettes/carte-visite.html`), qui la lisent ici. Les trois textes vivent en tête de
 `pieces.mjs` — les changer les change partout, y compris sur la planche.
 
 C'est la **forme de la zone** qui décide de la pose, pas le goût : une poitrine est large et

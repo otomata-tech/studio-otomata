@@ -14,16 +14,21 @@ const ENCRE = '#2c2112', CREME = '#fefcf5', SAFFRAN = '#f0b41e';
 
 // Ce que le merch dit, arrêté le 2026-09-04 : l'adresse devant, la phrase derrière.
 // La phrase est descriptive à dessein — dans le dos d'un inconnu, un clin d'œil ne se
-// comprend pas, un fait si.
+// comprend pas, un fait si. Le 2026-10-06, elle dit ce que fait la SOCIÉTÉ (« la boîte à
+// outils des agents » décrivait oto, le produit) — la même que sur les cartes de visite.
 const ADRESSE = 'otomata.tech';
 const NOM = 'OTOMATA';
-const PHRASE = 'LA BOÎTE À OUTILS DES AGENTS';
+const PHRASE = 'STUDIO DE CONCEPTION D’AGENTS IA';
+// Repris par les cartes imprimées (plaquettes/build-carte.mjs) : une seule source.
+export const MARQUE = { adresse: ADRESSE, nom: NOM, phrase: PHRASE };
 
 // « OTOMATA » en Bricolage Grotesque 600 / wdth 90 / letter-spacing -.035em occupe
-// 3,84 × sa font-size en largeur, la phrase en JetBrains Mono 21,1 ×. Mesuré sur le
+// 3,84 × sa font-size en largeur, la phrase en JetBrains Mono 24,1 ×. Mesuré sur le
 // rendu : c'est ce qui permet de caler les lignes les unes sur les autres sans tâtonner.
+// La phrase est en chasse fixe (0,6 em + 0,16 em d'interlettrage par signe) : un autre
+// texte se recalcule, signes × 0,748 + 0,16 — 32 signes ici.
 const RATIO_NOM = 3.84;
-const RATIO_PHRASE = 21.1;
+const RATIO_PHRASE = 24.1;
 // Le centre optique du mark n'est pas celui de sa boîte : le disque est à cy=60/128,
 // l'ombre déborde en bas. Un lockup calé sur la boîte penche visuellement.
 const RECENTRE = 0.031;

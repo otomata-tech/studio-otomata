@@ -10,7 +10,8 @@ Studio local de création de visuels dans la charte oto.cx : cartes « cas d'usa
 service/      # LE service web : API REST + IHM à gabarits (hébergé, cf. § Service web)
 cards/        # générateur de cartes cas d'usage (studio + batch)
 posts/        # affiches riso animées, une par post produit
-plaquettes/   # one-pagers imprimables (plaquette commerciale)
+plaquettes/   # imprimés : plaquette commerciale, carte de vœux, cartes de visite
+emails/       # gabarits de mails, signature mail (build-signature.mjs)
 site/         # visuels du site oto.cx (OG, héros, pictos)
 banners/      # bannières statiques (couvertures de profil / page)
 assets/       # fonts.css, icons.json, logos/ (marques tierces)
@@ -116,6 +117,28 @@ les côtés — d'où le groupe centré et l'URL rapatriée dans le bloc de text
 ⚠️ `avatar` porte un **`O` en réserve dans le disque**. Ce mark n'existe pas dans `brand/` :
 c'est une création de ce kit, à y ranger s'il est adopté — et à ne pas confondre avec l'« open O »
 saffran, qui est le mark du **produit** oto.
+
+## Imprimés et signature (`plaquettes/`, `emails/`)
+
+```bash
+node plaquettes/build-carte.mjs carte-visite <donnees.json>   # → out/plaquettes/<donnees>.pdf
+node plaquettes/build-carte.mjs carte-voeux  <donnees.json>
+node emails/build-signature.mjs <donnees.json> [...]           # → out/emails/signature-<nom>.html + .png
+```
+
+- Les **données portent des noms** (coordonnées, message) : elles vivent hors du dépôt, dans `out/plaquettes/`
+  (ignoré). Une même fiche — `nom`, `fonction`, `email`, `tel`, `qr` (la vCard), `liens` — sert à la carte de
+  visite et à la signature.
+- PDF avec **3 mm de fond perdu**, polices embarquées (`pdffonts` doit dire `emb=yes`). Carte de visite
+  85 × 55 mm, carte de vœux A6.
+- Le build injecte ce que la charte arrête ailleurs : les marks de `brand/logos/otomata/`, le nom, la phrase
+  et l'adresse de `brand/merch/pieces.mjs` (`MARQUE`) — la phrase du dos de t-shirt est celle des cartes.
+- **QR de la carte de visite** : modules carrés nets en encre, ombre carrée saffran décalée. Vérifier qu'il se
+  lit après toute retouche — OpenCV échoue sur certaines vCards valides (accents), zxing-cpp fait foi
+  (`pip install zxing-cpp`). Points ronds et repères arrondis ont été écartés : moins lisibles.
+- **Signature** : HTML de mail (tableaux, styles en ligne, Arial — un client mail ne charge pas nos
+  polices) ; le mark est servi par `studio.oto.zone/brand/logo/mark-256.png`. La page générée a un bouton
+  qui copie la signature rendue, à coller dans Gmail → Paramètres → Signature.
 
 ## Visuels du site — section cas d'usage d'oto.cx (`site/cas-usage/`)
 

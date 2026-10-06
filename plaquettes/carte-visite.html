@@ -1,0 +1,135 @@
+<!--
+  carte-visite.html : carte de visite Otomata, 85 × 55 mm + 3 mm de fond perdu = page de 91 × 61 mm.
+  Deux pages : recto (la marque, sur aplat saffran), verso (la personne).
+  Ne pas ouvrir tel quel : rendu par `node plaquettes/build-carte.mjs carte-visite <donnees.json>`,
+  qui embarque les polices, injecte les marks, le nom, la phrase et l'adresse du merch, et le QR code. Les coordonnées
+  vivent HORS de ce dépôt public ; les valeurs par défaut ci-dessous ne servent qu'à l'aperçu.
+  Données : nom, fonction, email, tel, qr (texte du QR, une vCard).
+-->
+<style>
+  /* __FONTS__ */
+  :root {
+    --bg: #fefcf5;
+    --ink: #2c2112;
+    --primary: #f0b41e;
+    --safe: 7mm; /* fond perdu + marge de sécurité de 4 mm côté coupe */
+  }
+  @page { size: 91mm 61mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); }
+  body { font-family: "Hanken Grotesk", sans-serif; color: var(--ink);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .face { position: relative; width: 91mm; height: 61mm; overflow: hidden;
+    background: var(--bg); page-break-after: always; break-after: page; }
+  .face:last-child { page-break-after: auto; break-after: auto; }
+
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-optical-sizing: auto;
+    font-variation-settings: "wdth" 90; font-weight: 600; }
+  .mono { font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+  .mark svg, .qr svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* une étiquette désaxée : aplat, cerne d'encre, ombre dure sans flou ni radius (grammaire riso) */
+  .etiquette { position: absolute; display: inline-block; border: 0.35mm solid var(--ink);
+    box-shadow: 0.7mm 0.7mm 0 var(--ink); white-space: nowrap; }
+
+  /* ---------- recto : aplat saffran plein, le lockup du dos de t-shirt (brand/merch) couché pour
+     le format. Sur saffran, le mark passe en version encre — le disque couleur s'y noierait —
+     et l'encrage décalé du nom passe en crème. La phrase prend la largeur du nom : calée au
+     rendu, une fois les polices chargées (cf. script). ---------- */
+  .recto { background: var(--primary); }
+  .recto .lockup { position: absolute; left: 0; right: 0; top: 0; bottom: 6mm;
+    display: flex; align-items: center; justify-content: center; gap: 5mm; }
+  .recto .mark { width: 21mm; height: 21mm; flex: none; }
+  .recto .nom { width: max-content; font-size: 30pt; line-height: .9; letter-spacing: -.035em; white-space: nowrap;
+    text-shadow: 0.7mm 0.7mm 0 var(--bg); }
+  .recto .filet { height: 0.35mm; background: var(--ink); margin: 2.4mm 0 1.8mm; }
+  .recto .phrase { width: max-content; font-size: 5pt; font-weight: 500; letter-spacing: .16em; white-space: nowrap; }
+  .recto .adresse { right: 9mm; bottom: 8.5mm; transform: rotate(-4deg); background: var(--bg);
+    padding: 1.1mm 2.2mm; font-size: 6pt; font-weight: 700; letter-spacing: .14em; }
+
+  /* ---------- verso : la personne à gauche, le QR de sa vCard sur un panneau encre à droite ---------- */
+  .verso .personne { position: absolute; left: var(--safe); top: var(--safe); bottom: var(--safe); width: 47mm;
+    display: flex; flex-direction: column; }
+  .verso .nom { font-size: 18pt; line-height: .95; letter-spacing: -.03em; text-shadow: 0.6mm 0.6mm 0 var(--primary); }
+  .verso .fonction { position: relative; align-self: flex-start; margin-top: 3mm; transform: rotate(-2deg);
+    background: var(--primary); padding: 0.9mm 1.8mm; font-size: 5pt; font-weight: 700; letter-spacing: .12em; }
+  .verso .contacts { margin-top: auto; border-top: 0.35mm solid var(--ink); padding-top: 2.4mm;
+    font-size: 7.4pt; line-height: 1.55; }
+  .verso .contacts .site { font-weight: 700; }
+  .verso .panneau { position: absolute; top: 0; right: 0; bottom: 0; width: 33mm; background: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding-right: 3mm; /* le fond perdu : centrer dans la partie visible */ }
+  /* le QR posé comme une étiquette crème, ombre dure saffran sur l'encre ; pas désaxé : un QR
+     penché se scanne, mais se lit mal comme carré à viser */
+  .verso .qr { width: 22mm; height: 22mm; padding: 1.4mm; background: var(--bg); box-shadow: 0.9mm 0.9mm 0 var(--primary); }
+  .verso .qr-legende { margin-top: 2.8mm; font-size: 4.6pt; font-weight: 700; letter-spacing: .16em; color: var(--primary); }
+</style>
+
+<section class="face recto">
+  <div class="lockup">
+    <div class="mark"></div>
+    <div>
+      <div class="nom display"></div>
+      <div class="filet"></div>
+      <div class="phrase mono"></div>
+    </div>
+  </div>
+  <div class="adresse etiquette mono"></div>
+</section>
+
+<section class="face verso">
+  <div class="personne">
+    <div class="nom display"></div>
+    <div class="fonction etiquette mono"></div>
+    <div class="contacts">
+      <div class="email"></div>
+      <div class="tel"></div>
+      <div class="site"></div>
+    </div>
+  </div>
+  <div class="panneau">
+    <div class="qr"></div>
+    <div class="qr-legende mono">mon contact</div>
+  </div>
+</section>
+
+<!--__DATA__-->
+<script>
+  /* Le QR dans la charte : modules carrés nets en encre, chacun doublé d'une ombre carrée saffran
+     décalée — l'encrage décalé des titres — sur une étiquette crème. Les arrondis (points ronds,
+     repères adoucis) ont été écartés : moins dans le style, et moins lisibles au décodage. */
+  const QR = { fond: '#fefcf5', ombre: '#f0b41e', decalage: .22 };
+  function qrSvg(m) {
+    const n = m.length, ENCRE = '#2c2112';
+    const modules = [];
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (m[y][x] === '1') modules.push([x, y]);
+    const couche = (dx, couleur) => `<g fill="${couleur}">${modules.map(([x, y]) =>
+      `<rect x="${x + dx}" y="${y + dx}" width="1.02" height="1.02"/>`).join('')}</g>`;
+    return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><rect width="${n}" height="${n}" fill="${QR.fond}"/>
+      ${couche(QR.decalage, QR.ombre)}${couche(0, ENCRE)}</svg>`;
+  }
+
+  const D = window.__CARTE || {};
+  const M = D.marque || { nom: 'OTOMATA', phrase: 'STUDIO DE CONCEPTION D’AGENTS IA', adresse: 'otomata.tech', mark: '', markEncre: '' };
+  const q = s => document.querySelector(s);
+  if (!D.qrMatrice) throw new Error('qr manquant : la carte de visite porte toujours le QR de la vCard');
+
+  q('.recto .mark').innerHTML = M.markEncre;
+  q('.recto .adresse').textContent = M.adresse;
+  q('.recto .nom').textContent = M.nom;
+  q('.recto .phrase').textContent = M.phrase;
+  q('.verso .nom').textContent = D.nom || 'Prénom Nom';
+  q('.verso .fonction').textContent = D.fonction || 'Fonction';
+  q('.verso .email').textContent = D.email || 'prenom@otomata.tech';
+  q('.verso .tel').textContent = D.tel || '+33 6 00 00 00 00';
+  q('.verso .site').textContent = M.adresse;
+  q('.verso .qr').innerHTML = qrSvg(D.qrMatrice);
+
+  // la phrase à la largeur exacte du nom, quelle que soit sa longueur
+  document.fonts.ready.then(() => {
+    const nom = q('.recto .nom'), phrase = q('.recto .phrase');
+    const fs = parseFloat(getComputedStyle(phrase).fontSize);
+    phrase.style.fontSize = `${fs * nom.getBoundingClientRect().width / phrase.getBoundingClientRect().width}px`;
+  });
+</script>

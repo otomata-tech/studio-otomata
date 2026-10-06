@@ -122,7 +122,7 @@ Les portraits publiés au nom d'Otomata (`alexis-laporte.jpg`, `sarah-soumahoro.
 `build-merch.mjs` produit quatorze PNG transparents dont le côté long fait 4000 px, **recadrés au
 contenu** — une marge transparente se paierait en centimètres de visuel perdus à l'impression.
 **L'adresse devant, la phrase derrière** : quatre poses (`ligne` = mark + `otomata.tech` pour la
-poitrine et le mug ; `dos` = mark en grand + OTOMATA + « LA BOÎTE À OUTILS DES AGENTS » ; le mark
+poitrine et le mug ; `dos` = mark en grand + OTOMATA + « STUDIO DE CONCEPTION D’AGENTS IA » ; le mark
 ou le nom seuls ; `bande` = le **glyphe colonne**, cinq disques dont l'anneau décalé pivote, dessiné
 pour les zones hautes et étroites où aucun texte ne tient), chacune en version claire, encre ou
 blanche. **Quel fichier prendre

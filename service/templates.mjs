@@ -177,8 +177,8 @@ const identite = {
   example: {
     format: 'post45',
     nom: 'OTOMATA',
-    baseline: '<b>Studio IA</b> · <b>Marseille</b>',
-    phrase: 'Studio IA basé à Marseille.',
+    baseline: '<b>Studio de conception d’agents IA</b><br>Marseille',
+    phrase: 'Studio de conception d’agents IA, à\u00a0Marseille.',
     url: 'otomata.tech'
   },
   build(data) {

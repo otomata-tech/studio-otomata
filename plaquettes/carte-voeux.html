@@ -1,0 +1,270 @@
+<!--
+  carte-voeux.html : carte imprimée Otomata, A6 paysage (148 × 105 mm) + 3 mm de fond perdu
+  = page de 154 × 111 mm. Deux pages : recto (visuel), verso (message).
+  Ne pas ouvrir tel quel : rendu par `node plaquettes/build-carte.mjs <donnees.json>`,
+  qui embarque les polices et injecte le texte. Le texte vit HORS de ce dépôt public
+  (il porte des noms) ; les valeurs par défaut ci-dessous ne servent qu'à l'aperçu.
+-->
+<style>
+  /* __FONTS__ */
+  :root {
+    --bg: #fefcf5;
+    --ink: #2c2112;
+    --mute: #6c5e44;
+    --hair: #dccfa8;
+    --primary: #f0b41e;
+    --primary-ink: #5a3b03;
+    --primary-soft: #fbe7a8;
+    --bleed: 3mm;
+    --safe: 9mm; /* fond perdu + marge de sécurité de 6 mm côté coupe */
+  }
+  @page { size: 154mm 111mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); }
+  body { font-family: "Hanken Grotesk", sans-serif; color: var(--ink);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .face { position: relative; width: 154mm; height: 111mm; overflow: hidden;
+    background: var(--bg); page-break-after: always; break-after: page; }
+  .face:last-child { page-break-after: auto; break-after: auto; }
+
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-optical-sizing: auto;
+    font-variation-settings: "wdth" 90; font-weight: 600; letter-spacing: -0.025em; }
+  .mono { font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+
+  /* le mark : ombre dure, anneau saffran décalé, disque cerné d'encre (brand/logos/otomata) */
+  .mark { position: absolute; }
+  .mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* halo saffran, la « matière riso » du kit d'identité */
+  .sun { position: absolute; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(240,180,30,0.30), rgba(240,180,30,0.08) 55%, transparent 72%); }
+
+  /* ---------- recto ---------- */
+  .recto .sun { width: 150mm; height: 150mm; right: -48mm; top: -52mm; }
+  .recto .mark { width: 50mm; height: 50mm; right: 17mm; top: 13mm; }
+  /* motif optionnel (données : "motif") — même grammaire que le mark : aplat, cerne d'encre, ombre dure */
+  .recto .motif { position: absolute; display: none; }
+  .recto .motif svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .recto[data-motif="olivier"] .motif { display: block; width: 74mm; height: 43mm; right: 10mm; top: 41mm; }
+  .recto .titre { position: absolute; left: var(--safe); bottom: 33mm; width: 88mm;
+    font-size: 25pt; line-height: 1.02; text-shadow: 0.8mm 0.8mm 0 var(--primary); }
+  .recto footer { position: absolute; left: var(--safe); right: var(--safe); bottom: var(--safe);
+    border-top: 0.35mm solid var(--ink); padding-top: 3mm;
+    display: flex; justify-content: space-between; align-items: flex-end; }
+  .recto .nom { font-size: 14pt; line-height: 1; text-shadow: 0.6mm 0.6mm 0 var(--primary); }
+  .recto .base { margin-top: 1.6mm; font-size: 5.6pt; letter-spacing: 0.2em; color: var(--mute); }
+  .recto .base b { color: var(--ink); font-weight: 700; }
+  .recto .url { font-size: 6pt; letter-spacing: 0.16em; font-weight: 700; }
+
+  /* ---------- verso : un panneau illustré à gauche (fond perdu compris), le message à droite ;
+     sous le message, l'espace libre reçoit le mot manuscrit. Pas de lignes : sur une carte
+     glissée en enveloppe, elles se lisent comme un bloc adresse. ---------- */
+  .verso .panneau { position: absolute; left: 0; top: 0; bottom: 0; width: 58mm; overflow: hidden;
+    background: var(--primary-soft); border-right: 0.35mm solid var(--ink); }
+  .verso .panneau .mark { width: 11mm; height: 11mm; left: var(--safe); bottom: var(--safe); }
+  /* scène optionnelle de la bande (données : "scene"), pleine hauteur, même grammaire que le mark */
+  .verso .scene { position: absolute; inset: 0; display: none; }
+  .verso .scene svg { width: 100%; height: 100%; display: block; }
+  .verso[data-scene] .scene { display: block; }
+  .verso[data-scene] .panneau .mark { display: none; }
+  .verso .texte { position: absolute; left: 67mm; right: var(--safe); top: var(--safe); bottom: var(--safe);
+    display: flex; flex-direction: column; }
+  .verso .message { font-size: 9.4pt; line-height: 1.45; }
+  .verso .message p + p { margin-top: 2.8mm; }
+  .verso .signature { margin-top: auto; }
+  .verso .signataire { font-size: 8pt; font-weight: 700; }
+  .verso .signataire-url { margin-top: 1mm; font-size: 5.6pt; letter-spacing: 0.16em; color: var(--mute); }
+</style>
+
+<template id="mark">
+  <svg viewBox="0 0 128 128" aria-label="Otomata">
+    <circle cx="66" cy="66" r="52" fill="#2c2112" opacity=".85"/>
+    <circle cx="54" cy="55" r="50.4" fill="none" stroke="#f0b41e" stroke-width="3.2"/>
+    <circle cx="60" cy="60" r="50.4" fill="#f0b41e" stroke="#2c2112" stroke-width="3.2"/>
+  </svg>
+</template>
+
+<template id="motif-olivier">
+  <!-- rameau d'olivier : feuilles olive et olives encre cernées, ombre dure ; l'olive porte
+       l'anneau saffran décalé du mark -->
+  <svg viewBox="0 0 240 140">
+    <defs>
+      <path id="feuille" d="M0,0 C12,-8 36,-8 52,0 C36,8 12,8 0,0 Z"/>
+    </defs>
+    <g transform="translate(3.5,3.5)" fill="#2c2112" opacity=".85">
+      <path d="M232,122 C190,108 140,84 92,58 C66,44 40,34 14,30" fill="none" stroke="#2c2112" stroke-width="4"/>
+      <use href="#feuille" transform="translate(206,111) rotate(-112)"/>
+      <use href="#feuille" transform="translate(180,101) rotate(-196)"/>
+      <use href="#feuille" transform="translate(150,87) rotate(-108)"/>
+      <use href="#feuille" transform="translate(122,72) rotate(-192)"/>
+      <use href="#feuille" transform="translate(94,58) rotate(-104)"/>
+      <use href="#feuille" transform="translate(66,45) rotate(-190)"/>
+      <use href="#feuille" transform="translate(38,35) rotate(-110)"/>
+      <use href="#feuille" transform="translate(14,30) rotate(-160)"/>
+      <ellipse cx="160" cy="116" rx="10" ry="13" transform="rotate(-20 160 116)"/>
+      <ellipse cx="108" cy="92" rx="9" ry="12" transform="rotate(-25 108 92)"/>
+    </g>
+    <path d="M232,122 C190,108 140,84 92,58 C66,44 40,34 14,30" fill="none" stroke="#2c2112" stroke-width="3.2" stroke-linecap="round"/>
+    <g fill="#8aa620" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round">
+      <use href="#feuille" transform="translate(206,111) rotate(-112)"/>
+      <use href="#feuille" transform="translate(180,101) rotate(-196)"/>
+      <use href="#feuille" transform="translate(150,87) rotate(-108)"/>
+      <use href="#feuille" transform="translate(122,72) rotate(-192)"/>
+      <use href="#feuille" transform="translate(94,58) rotate(-104)"/>
+      <use href="#feuille" transform="translate(66,45) rotate(-190)"/>
+      <use href="#feuille" transform="translate(38,35) rotate(-110)"/>
+      <use href="#feuille" transform="translate(14,30) rotate(-160)"/>
+    </g>
+    <g fill="none" stroke="#f0b41e" stroke-width="2.4">
+      <ellipse cx="156" cy="112" rx="10" ry="13" transform="rotate(-20 156 112)"/>
+      <ellipse cx="104" cy="88" rx="9" ry="12" transform="rotate(-25 104 88)"/>
+    </g>
+    <g fill="#2c2112" stroke="#2c2112" stroke-width="2.4">
+      <ellipse cx="158" cy="115" rx="10" ry="13" transform="rotate(-20 158 115)"/>
+      <ellipse cx="106" cy="91" rx="9" ry="12" transform="rotate(-25 106 91)"/>
+    </g>
+    <path d="M158,103 L164,94 M106,79 L110,68" stroke="#2c2112" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>
+</template>
+
+<template id="scene-marseille">
+  <!-- Vieux-Port, d'après la scène du fond d'otomata.tech (MarseilleScene.vue) redessinée dans la
+       grammaire du mark : aplats, cerne d'encre, ombre dure. Le soleil est le mark, comme sur le site. -->
+  <svg viewBox="0 0 232 444" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <path id="colline" d="M-10,250 C20,228 58,204 92,190 L170,188 C196,200 222,218 250,236 L250,262 L-10,262 Z"/>
+      <path id="basilique" d="M96,190 L96,170 L112,170 L112,122 L118,122 L118,104 L130,104 L130,122 L136,122 L136,170 L152,170 L152,190 Z"/>
+      <path id="coque" d="M58,372 L176,372 L162,394 L74,394 Z"/>
+      <path id="gv" d="M122,258 L122,364 L178,364 Z"/>
+      <path id="foc" d="M112,270 L112,364 L64,364 Z"/>
+    </defs>
+    <!-- ciel : le fond saffran pâle de la bande -->
+    <!-- soleil = le mark -->
+    <g transform="translate(36,38) scale(.62)">
+      <circle cx="66" cy="66" r="52" fill="#2c2112" opacity=".85"/>
+      <circle cx="54" cy="55" r="50.4" fill="none" stroke="#f0b41e" stroke-width="4.4"/>
+      <circle cx="60" cy="60" r="50.4" fill="#f0b41e" stroke="#2c2112" stroke-width="4.4"/>
+    </g>
+    <!-- goélands -->
+    <g fill="none" stroke="#2c2112" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M150,54 q7,-7 12,0 q5,-7 12,0"/>
+      <path d="M182,80 q5,-5 9,0 q4,-5 9,0"/>
+    </g>
+    <!-- colline et Notre-Dame de la Garde -->
+    <g fill="#2c2112" opacity=".85" transform="translate(3.5,3.5)"><use href="#colline"/><use href="#basilique"/></g>
+    <use href="#colline" fill="#dccfa8" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M30,236 C44,226 60,222 74,226 C66,236 48,240 30,236 Z M176,214 C190,210 204,214 214,222 C200,228 186,226 176,214 Z" fill="#8aa620" stroke="#2c2112" stroke-width="2" stroke-linejoin="round"/>
+    <use href="#basilique" fill="#fefcf5" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round"/>
+    <g fill="#e84b16"><rect x="118" y="130" width="12" height="4"/><rect x="118" y="142" width="12" height="4"/><rect x="118" y="154" width="12" height="4"/></g>
+    <g fill="#2c2112"><rect x="120" y="110" width="8" height="8" rx="4"/><rect x="102" y="176" width="6" height="8"/><rect x="140" y="176" width="6" height="8"/></g>
+    <!-- la Bonne Mère, dorée -->
+    <path d="M124,104 L120,84 L124,78 L128,84 L128,104 Z" fill="#f0b41e" stroke="#2c2112" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="124" cy="75" r="3.6" fill="#f0b41e" stroke="#2c2112" stroke-width="2"/>
+    <!-- façades du port -->
+    <g stroke="#2c2112" stroke-width="2.2" stroke-linejoin="round">
+      <g fill="#2c2112" opacity=".85" stroke="none" transform="translate(3,3)">
+        <rect x="-4" y="226" width="30" height="36"/><rect x="26" y="216" width="28" height="46"/><rect x="54" y="232" width="34" height="30"/>
+        <rect x="88" y="220" width="26" height="42"/><rect x="114" y="230" width="36" height="32"/><rect x="150" y="214" width="28" height="48"/>
+        <rect x="178" y="228" width="30" height="34"/><rect x="208" y="220" width="30" height="42"/>
+      </g>
+      <rect x="-4" y="226" width="30" height="36" fill="#fefcf5"/><rect x="26" y="216" width="28" height="46" fill="#f7cdbb"/>
+      <rect x="54" y="232" width="34" height="30" fill="#fbe7a8"/><rect x="88" y="220" width="26" height="42" fill="#fefcf5"/>
+      <rect x="114" y="230" width="36" height="32" fill="#f7cdbb"/><rect x="150" y="214" width="28" height="48" fill="#fefcf5"/>
+      <rect x="178" y="228" width="30" height="34" fill="#fbe7a8"/><rect x="208" y="220" width="30" height="42" fill="#f7cdbb"/>
+      <g fill="#e84b16">
+        <path d="M-6,226 L28,226 L24,220 L-2,220 Z"/><path d="M24,216 L56,216 L52,210 L28,210 Z"/><path d="M52,232 L90,232 L86,226 L56,226 Z"/>
+        <path d="M86,220 L116,220 L112,214 L90,214 Z"/><path d="M112,230 L152,230 L148,224 L116,224 Z"/><path d="M148,214 L180,214 L176,208 L152,208 Z"/>
+        <path d="M176,228 L210,228 L206,222 L180,222 Z"/><path d="M206,220 L240,220 L236,214 L210,214 Z"/>
+      </g>
+    </g>
+    <g fill="#2c2112">
+      <rect x="6" y="236" width="5" height="7"/><rect x="15" y="236" width="5" height="7"/><rect x="34" y="226" width="5" height="7"/><rect x="43" y="226" width="5" height="7"/>
+      <rect x="34" y="242" width="5" height="7"/><rect x="43" y="242" width="5" height="7"/><rect x="63" y="241" width="5" height="7"/><rect x="75" y="241" width="5" height="7"/>
+      <rect x="96" y="230" width="5" height="7"/><rect x="104" y="230" width="5" height="7"/><rect x="96" y="245" width="5" height="7"/><rect x="104" y="245" width="5" height="7"/>
+      <rect x="123" y="240" width="5" height="7"/><rect x="136" y="240" width="5" height="7"/><rect x="158" y="224" width="5" height="7"/><rect x="167" y="224" width="5" height="7"/>
+      <rect x="158" y="240" width="5" height="7"/><rect x="167" y="240" width="5" height="7"/><rect x="187" y="238" width="5" height="7"/><rect x="197" y="238" width="5" height="7"/>
+      <rect x="216" y="230" width="5" height="7"/><rect x="216" y="245" width="5" height="7"/>
+    </g>
+    <!-- quai -->
+    <rect x="-4" y="262" width="240" height="10" fill="#dccfa8" stroke="#2c2112" stroke-width="2.2"/>
+    <!-- mer -->
+    <rect x="-4" y="272" width="240" height="176" fill="#1f6dba" stroke="#2c2112" stroke-width="2.2"/>
+    <g fill="none" stroke-linecap="round" stroke-width="2.4">
+      <g stroke="#f0b41e"><path d="M40,292 h22"/><path d="M34,304 h30"/><path d="M42,316 h16"/></g>
+      <g stroke="#c4dcf0">
+        <path d="M150,290 q6,-4 12,0 q6,4 12,0"/><path d="M186,318 q6,-4 12,0 q6,4 12,0"/><path d="M16,340 q6,-4 12,0 q6,4 12,0"/>
+        <path d="M22,414 q6,-4 12,0 q6,4 12,0"/><path d="M150,420 q6,-4 12,0 q6,4 12,0"/><path d="M190,398 q6,-4 12,0 q6,4 12,0"/>
+      </g>
+    </g>
+    <!-- voilier -->
+    <g fill="#2c2112" opacity=".85" transform="translate(3.5,3.5)"><use href="#coque"/><use href="#gv"/><use href="#foc"/></g>
+    <path d="M117,252 L117,372" stroke="#2c2112" stroke-width="3.2" stroke-linecap="round"/>
+    <use href="#gv" fill="#fefcf5" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round"/>
+    <use href="#foc" fill="#fbe7a8" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M117,250 L136,256 L117,262 Z" fill="#f0b41e" stroke="#2c2112" stroke-width="2" stroke-linejoin="round"/>
+    <use href="#coque" fill="#2c2112" stroke="#2c2112" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M64,378 L170,378" stroke="#e84b16" stroke-width="3"/>
+    <path d="M58,402 q10,-6 20,0 M154,402 q10,-6 20,0" fill="none" stroke="#c4dcf0" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>
+</template>
+
+<section class="face recto">
+  <div class="sun"></div>
+  <div class="mark"></div>
+  <div class="motif"></div>
+  <h1 class="titre display"></h1>
+  <footer>
+    <div>
+      <div class="nom display">OTOMATA</div>
+      <div class="base mono"></div>
+    </div>
+    <div class="url mono"></div>
+  </footer>
+</section>
+
+<section class="face verso">
+  <div class="panneau">
+    <div class="scene"></div>
+    <div class="mark"></div>
+  </div>
+  <div class="texte">
+    <div class="message"></div>
+    <div class="signature">
+      <div class="signataire"></div>
+      <div class="signataire-url mono"></div>
+    </div>
+  </div>
+</section>
+
+<!--__DATA__-->
+<script>
+  const D = window.__CARTE || {};
+  const titre = D.titre || 'Belles fêtes<br>de fin d’année.';
+  const message = D.message || ['Texte du message.', 'Un paragraphe par entrée.'];
+  const signataire = D.signataire || 'OTOMATA';
+  const baseline = D.baseline || '<b>Studio IA</b> &middot; <b>Marseille</b>';
+  const lien = D.url || 'otomata.tech';
+
+  const q = s => document.querySelector(s);
+  const mark = q('#mark').innerHTML;
+  document.querySelectorAll('.mark').forEach(el => { el.innerHTML = mark; });
+  if (D.motif) {
+    const t = q('#motif-' + D.motif);
+    if (!t) throw new Error(`motif inconnu : ${D.motif}`);
+    q('.recto').dataset.motif = D.motif;
+    q('.recto .motif').innerHTML = t.innerHTML;
+  }
+  if (D.scene) {
+    const t = q('#scene-' + D.scene);
+    if (!t) throw new Error(`scène inconnue : ${D.scene}`);
+    q('.verso').dataset.scene = D.scene;
+    q('.verso .scene').innerHTML = t.innerHTML;
+  }
+  q('.titre').innerHTML = titre;
+  q('.base').innerHTML = baseline;
+  q('.url').textContent = lien;
+  q('.message').innerHTML = message.map(p => `<p>${p}</p>`).join('');
+  q('.signataire').innerHTML = signataire;
+  q('.signataire-url').textContent = lien;
+</script>

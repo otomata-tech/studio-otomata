@@ -68,6 +68,7 @@ Grotesque 800 crème à ombre d'encre, grain) et **une seule encre** pour la str
 |---|---|---|
 | le dessin des affiches | le design system « Cowork de l'IA » sur Claude Design (<https://claude.ai/artifact/NHNVP9oFub3DLSPXVHPCbj>, `components/bundle.js`), lui-même porté de `cowork.otomata.tech/src/components/Affiche.vue` | `posts/cowork/affiche.js` — le bundle à l'octet, plus l'option `format` ajoutée par le studio (à reporter sur le design system, cf. `service/README.md`) |
 | les jetons (couleurs, typo, espacements) | le même design system (`tokens.json`) | `cowork/tokens.json`, copie à l'octet (un JSON ne porte pas de commentaire : sa provenance est ici et dans son bloc `meta`) |
+| l'affiche en tête des PDF du Cowork (gabarit `affiche` de md2pdf) | le même dessin, porté en SVG statique le 13/10/2026 | `admin/legal/templates/affiche/` sur le Drive ; pipeline documenté dans `../documents/README.md` |
 | le logo | **ce dossier** : `logos/cowork/`, arrêté le 13/10/2026 | aucune — le studio le sert depuis `logos/cowork/` |
 
 Une évolution du dessin ou des jetons se décide sur le design system, puis se recopie ici ; une

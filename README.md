@@ -17,6 +17,7 @@ banners/      # bannières statiques (couvertures de profil / page)
 assets/       # fonts.css, icons.json, logos/ (marques tierces)
 tools/        # publication (publer_schedule.py)
 brand/        # logos & charte Otomata/Oto (cache local ; voir brand/README.md)
+documents/    # documentation du pipeline des PDF (md2pdf, gabarits, polices) qui vit sur le Drive admin/legal/
 out/          # exports (ignoré), en miroir des sources :
               #   cards/ · posts/ · plaquettes/ · banners/ · articles/<slug>/
 .gen/         # HTML générés + frames intermédiaires (ignoré)

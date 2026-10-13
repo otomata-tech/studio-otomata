@@ -84,7 +84,7 @@ function palette() {
 
 // Le rôle de chaque famille ; la liste des familles, elle, vient du fichier de jetons.
 const ROLES = {
-  'Bricolage Grotesque': ['Display', 'titres d’affiche, de page et de rubrique — graisse 800 (700 pour le manifeste), approche serrée, pas d’italique'],
+  'Bricolage Grotesque': ['Display', 'titres d’affiche, de page et de rubrique — graisse 800, approche serrée, pas d’italique'],
   'Hanken Grotesk': ['Sans', 'tout le texte courant : corps 16 px, prose 17 px, chapô 20 px'],
   'JetBrains Mono': ['Mono', 'repères : surtitres, moments du programme, pied d’affiche — capitales espacées de 0,12 à 0,16 em ; le nom du lieu près du mark, en minuscules'],
 };

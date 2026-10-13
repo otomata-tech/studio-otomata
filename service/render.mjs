@@ -15,6 +15,9 @@ const IDLE_MS = Number(process.env.STUDIO_CHROME_IDLE_MS || 600_000);
 
 let ws, sessionId, msgId = 0, ready = null, proc = null, idleTimer = null;
 const pending = new Map();
+// Erreurs JS levées par la page en cours de rendu. Un gabarit qui plante à moitié
+// rend quand même une image — amputée, mais qui ressemble à un succès. (01/10)
+let pageErrors = [];
 
 function send(method, params = {}, withSession = false) {
   const id = ++msgId;
@@ -46,6 +49,11 @@ async function boot() {
   await new Promise(r => ws.addEventListener('open', r, { once: true }));
   ws.addEventListener('message', ev => {
     const m = JSON.parse(ev.data);
+    if (m.method === 'Runtime.exceptionThrown') {
+      const d = m.params.exceptionDetails;
+      pageErrors.push(d.exception?.description || d.text);
+      return;
+    }
     if (!m.id || !pending.has(m.id)) return;
     const p = pending.get(m.id);
     pending.delete(m.id);
@@ -132,7 +140,7 @@ export function render(job) {
   return chain;
 }
 
-async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1, transparent = false }) {
+async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1, transparent = false, jpeg = 0 }) {
   await chrome();
   mkdirSync(dir, { recursive: true });
   const htmlPath = `${dir}/page.html`;
@@ -141,13 +149,18 @@ async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1
   const started = Date.now();
   await ss('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: scale, mobile: false });
   // Un PNG de logo doit être détourable : sans cet override, Chrome peint un fond
-  // blanc opaque sous la page. À REMETTRE À null ensuite (l'override vit sur la
-  // session, pas sur le rendu) — sinon les visuels suivants sortent troués.
-  if (transparent)
-    await ss('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } });
+  // blanc opaque sous la page. L'override vit sur la session, pas sur le rendu : on le
+  // pose donc à CHAQUE rendu, dans un sens ou dans l'autre. Le retirer en fin de rendu
+  // ne suffisait pas — un rendu qui échoue en route le laissait, et les visuels
+  // suivants sortaient troués.
+  await ss('Emulation.setDefaultBackgroundColorOverride',
+    transparent ? { color: { r: 0, g: 0, b: 0, a: 0 } } : {});
+  pageErrors = [];
   await ss('Page.navigate', { url: `file://${htmlPath}?capture=1` });
   await sleep(900);
   await evalJs('document.fonts.ready.then(()=>1)', true);
+  if (pageErrors.length)
+    throw new Error(`le gabarit a planté sur ces données : ${pageErrors[0].split('\n')[0]}`);
 
   const files = {};
   const clip = { x: 0, y: 0, width, height, scale: 1 };
@@ -163,6 +176,15 @@ async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1
     const { data } = await ss('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: true });
     writeFileSync(`${dir}/visuel.png`, Buffer.from(data, 'base64'));
     files.png = 'visuel.png';
+    // `jpeg` (une qualité, ex. 90) : la même image en JPEG, à côté du PNG. Un visuel à grain de papier
+    // pixel par pixel (les affiches du Cowork) pèse ~9 Mo en PNG — au-delà de ce que LinkedIn accepte
+    // (3 Mo pour une couverture de page) ; en JPEG, deux à trois fois moins.
+    if (jpeg) {
+      const { data: jpg } = await ss('Page.captureScreenshot',
+        { format: 'jpeg', quality: jpeg, clip, captureBeyondViewport: true });
+      writeFileSync(`${dir}/visuel.jpg`, Buffer.from(jpg, 'base64'));
+      files.jpg = 'visuel.jpg';
+    }
   }
 
   const wantsFilm = formats.includes('mp4') || formats.includes('gif');
@@ -202,8 +224,6 @@ async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1
     rmSync(fdir, { recursive: true, force: true });
     if (!formats.includes('mp4')) { rmSync(mp4, { force: true }); delete files.mp4; }
   }
-
-  if (transparent) await ss('Emulation.setDefaultBackgroundColorOverride', {});
 
   rmSync(htmlPath, { force: true });
   return { files, ms: Date.now() - started };

@@ -3,6 +3,7 @@
 // document avec `http_doc()` puis appelle `http_get`/`http_post`).
 // Elle est DÉRIVÉE du registre de gabarits : un gabarit ajouté s'y décrit tout seul.
 import * as templates from './templates.mjs';
+import * as marques from './marques.mjs';
 
 // Les valeurs autorisées sont données EN ENTIER, y compris pour les sous-champs d'une
 // liste : une énumération tronquée fait inventer une valeur plausible, refusée ensuite
@@ -39,7 +40,7 @@ export function openapi() {
   const list = templates.list();
   const detail = list.map(t => {
     const full = templates.get(t.id);
-    return `### \`${t.id}\` — ${t.label}\n${t.description}\nFormats : ${t.formats.join(', ')}. ` +
+    return `### \`${t.id}\` — ${t.label}\nMarque : ${marques.get(t.marque).nom}.\n${t.description}\nFormats : ${t.formats.join(', ')}. ` +
       `${taille(t)}\nChamps de \`data\` :\n${champs(full.fields)}`;
   }).join('\n\n');
 
@@ -49,7 +50,8 @@ export function openapi() {
       title: 'oto studio',
       version: '1',
       description:
-        'Produit des visuels dans la charte Otomata à partir de gabarits fermés.\n\n' +
+        'Produit des visuels dans la charte d\'une marque, à partir de gabarits fermés. Chaque gabarit ' +
+        'dit sa marque : ' + marques.liste().map(m => `**${m.nom}** (\`${m.id}\`)`).join(', ') + '.\n\n' +
         'Marche à suivre : `POST /api/renders` avec un `template` et son `data`. La réponse ' +
         'porte **`page`** — une URL à donner telle quelle à la personne : elle affiche ' +
         'l\'attente, puis le visuel dès qu\'il est prêt. **C\'est ce qu\'il faut rendre**, ' +

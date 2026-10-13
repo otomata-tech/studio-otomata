@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FORMATS, CLES, livre } from '../posts/identite-formats.mjs';
 import * as uploads from './uploads.mjs';
+import * as cowork from './marques/cowork-affiche.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -416,11 +417,116 @@ const photoCadre = {
   }
 };
 
-const TEMPLATES = new Map([[carte.id, carte], [affiche.id, affiche], [identite.id, identite], [banniere.id, banniere], [output.id, output], [annonce.id, annonce], [photoCadre.id, photoCadre]]);
+/* ---------- affiche du Cowork de l'IA (seconde marque) ---------- */
+
+// Le dessin est celui du design system « Cowork de l'IA » (posts/cowork/affiche.js), exécuté dans
+// Node : les énumérations du formulaire sont les siennes, pas une copie.
+const lignes = v => (typeof v === 'string' ? v.split('\n').map(l => l.trim()).filter(Boolean) : []);
+
+const MOTIFS_DITS = {
+  marseille: 'la Garde, Notre-Dame, le fort Saint-Jean et la mer',
+  chiffre: 'un grand chiffre tramé (champ « Chiffre » obligatoire)',
+  bol: 'un bol fumant — le déjeuner',
+  soleil: 'un soleil levant sur la mer',
+  bulles: 'deux bulles de dialogue, ? et !',
+};
+
+const afficheCowork = {
+  id: 'affiche-cowork',
+  marque: 'cowork',
+  label: 'Affiche du Cowork de l’IA',
+  description: 'L’affiche risographie du Cowork de l’IA : aplat, tartan tramé, motif doublé d’une copie décalée, '
+    + 'grand titre crème à ombre d’encre, pied en capitales mono. On la règle (motif, ton, textes, format), on ne '
+    + 'la redessine pas. Prix toujours « HT », lieu « Marseille 6e » et jamais d’adresse, pas d’emoji, aucun chiffre '
+    + 'inventé. Statique, un format par rendu.',
+  size: { width: cowork.TAILLES.carre.width, height: cowork.TAILLES.carre.height },
+  sizes: cowork.TAILLES,
+  size_field: 'format',
+  fps: 25,
+  formats: ['png'],
+  // Grain de papier pixel par pixel : un PNG de 4:5 pèse ~9 Mo, au-delà de ce que LinkedIn prend.
+  // Chaque rendu livre donc aussi un JPEG qualité 90, à côté du PNG (cf. render.mjs, option `jpeg`).
+  jpeg: 90,
+  fields: [
+    { key: 'format', label: 'Format', type: 'enum', options: Object.keys(cowork.TAILLES), required: true,
+      hint: Object.entries(cowork.TAILLES).map(([f, s]) => `${f} = ${s.width * s.scale}×${s.height * s.scale} (${s.cible})`).join(' · ') },
+    { key: 'motif', label: 'Motif', type: 'enum', options: cowork.MOTIFS, required: true,
+      hint: cowork.MOTIFS.map(m => `${m} = ${MOTIFS_DITS[m] || m}`).join(' · ') },
+    { key: 'ton', label: 'Ton', type: 'enum', options: Object.keys(cowork.TONS), required: true,
+      hint: 'soleil = fond saffran clair · terre = fond terra clair · mer = fond bleu mer, titre saffran (avec le motif soleil SEULEMENT) · olive = fond olive clair' },
+    { key: 'titre', label: 'Titre', type: 'textarea', required: true,
+      hint: 'UNE LIGNE PAR LIGNE affichée : 1 à 3 lignes courtes et parlées (22 caractères au plus) — ex. « Le cas » / « du vendredi ». '
+        + 'La taille suit la ligne la plus longue. Profil : 2 lignes au plus ; page : 1.' },
+    { key: 'kicker', label: 'Kicker', type: 'textarea', required: false,
+      hint: 'en minuscules, au-dessus du titre : 2 lignes au plus (36 caractères par ligne). Profil : 1 ligne ; page : aucun.' },
+    { key: 'pied', label: 'Pied', type: 'textarea', required: false,
+      hint: 'lieu, date ou prix, mis en capitales mono — ex. « Vendredi · 12 h 30 – 17 h · gratuit ». '
+        + 'Une ligne, deux au plus (la seconde pour l’adresse) ; page : une seule.' },
+    { key: 'chiffre', label: 'Chiffre', type: 'text', required: false,
+      hint: 'avec le motif « chiffre » seulement, et alors obligatoire : 3 caractères au plus, ex. « 10 ». Jamais un chiffre inventé.' },
+  ],
+  // Le cas du vendredi : une offre réelle du lieu (grille du site cowork.otomata.tech).
+  example: {
+    format: 'carre',
+    motif: 'bol',
+    ton: 'terre',
+    titre: 'Le cas\ndu vendredi',
+    kicker: 'un problème réel au déjeuner,\nl’après-midi pour avancer',
+    pied: 'Vendredi · 12 h 30 – 17 h · gratuit',
+  },
+  // Ce que les champs seuls ne disent pas : les plafonds dépendent du format choisi, et le chiffre
+  // dépend du motif. Appelé par `validate`, avec les autres refus.
+  check(data) {
+    const refus = [];
+    const s = Object.hasOwn(cowork.SERVIS, data.format) ? cowork.SERVIS[data.format] : null;
+    if (!s) return refus;   // format absent ou hors liste : déjà refusé par le contrôle des champs
+    const titre = lignes(data.titre), kicker = lignes(data.kicker), pied = lignes(data.pied);
+    if (typeof data.titre === 'string' && !titre.length) refus.push('titre : au moins une ligne non vide');
+    if (titre.length > s.titre) refus.push(`titre : ${s.titre} ligne(s) au plus en format ${data.format} (reçu ${titre.length})`);
+    for (const l of titre) if (l.length > 22) refus.push(`titre : ligne trop longue (22 caractères au plus) : « ${l} »`);
+    if (kicker.length > s.kicker)
+      refus.push(s.kicker ? `kicker : ${s.kicker} ligne(s) au plus en format ${data.format}` : `kicker : pas de place en format ${data.format}`);
+    for (const l of kicker) if (l.length > 36) refus.push(`kicker : ligne trop longue (36 caractères au plus) : « ${l} »`);
+    if (pied.length > s.pied[0]) refus.push(`pied : ${s.pied[0]} ligne(s) au plus en format ${data.format}`);
+    for (const l of pied) if (l.length > s.pied[1])
+      refus.push(`pied : ligne trop longue en format ${data.format} (${s.pied[1]} caractères au plus) : « ${l} »`);
+    // Le dessin lève la même erreur : sur le cobalt, la double impression des autres motifs vire au vert sale.
+    if (data.ton === 'mer' && data.motif !== 'soleil' && cowork.MOTIFS.includes(data.motif))
+      refus.push(`ton « mer » : seulement avec le motif « soleil » (motif reçu : ${data.motif}) — sur le fond bleu, `
+        + 'la double impression des autres motifs vire au vert. Prendre un autre ton, ou le motif soleil.');
+    const chiffre = data.chiffre;
+    if (data.motif === 'chiffre' && (chiffre === undefined || chiffre === null || chiffre === ''))
+      refus.push('chiffre : obligatoire avec le motif « chiffre »');
+    if (data.motif !== 'chiffre' && chiffre !== undefined && chiffre !== null && chiffre !== '')
+      refus.push(`chiffre : seulement avec le motif « chiffre » (motif reçu : ${data.motif})`);
+    if (data.motif === 'chiffre' && typeof chiffre === 'string' && chiffre !== '' && !chiffre.trim())
+      refus.push('chiffre : vide (des espaces seulement)');
+    if (typeof chiffre === 'string' && chiffre.trim().length > 3) refus.push(`chiffre : 3 caractères au plus (reçu « ${chiffre} »)`);
+    return refus;
+  },
+  /** Les options du dessin, depuis les données du formulaire. Exporté pour le kit, qui passe par ici. */
+  options(data) {
+    const o = { format: data.format, motif: data.motif, ton: data.ton, titre: lignes(data.titre) };
+    if (lignes(data.kicker).length) o.kicker = lignes(data.kicker);
+    if (lignes(data.pied).length) o.pied = lignes(data.pied);
+    if (data.motif === 'chiffre') o.chiffre = data.chiffre.trim();
+    return o;
+  },
+  build(data) {
+    return page(`Cowork de l’IA — ${lignes(data.titre).join(' ')}`, cowork.corps(this.options(data)));
+  }
+};
+
+// Chaque gabarit dit sa marque : l'IHM ne montre que ceux de la marque choisie. Posée en place
+// (pas par copie) : `carte` lit son exemple par un accesseur, qu'une copie figerait au démarrage.
+for (const t of [carte, affiche, identite, banniere, output, annonce, photoCadre]) t.marque = 'otomata';
+
+const TEMPLATES = new Map([carte, affiche, identite, banniere, output, annonce, photoCadre, afficheCowork]
+  .map(t => [t.id, t]));
 
 // L'index reste léger : ni le constructeur ni l'exemple (le manifeste unitaire les porte).
 export const list = () => [...TEMPLATES.values()].map(
-  ({ build, example, fields, ...rest }) => rest);
+  ({ build, example, fields, check, options, ...rest }) => rest);
 
 export function get(id) {
   const t = TEMPLATES.get(id);
@@ -458,6 +564,11 @@ export function validate(template, data) {
         if (f.required) refus.push(`champ manquant : ${où(f.key)}`);
         continue;
       }
+      // Un texte reçu en liste (le contenu d'une carte, ligne par ligne) passait la
+      // validation, faisait planter le gabarit et sortait un PNG sans scène. (01/10)
+      if ((f.type === 'text' || f.type === 'textarea') && typeof v !== 'string')
+        refus.push(`${où(f.key)} doit être un texte` +
+          (f.type === 'textarea' ? ' (une ligne par saut de ligne \\n, pas une liste)' : ''));
       if (f.type === 'enum' && !f.options.includes(v))
         refus.push(`valeur refusée pour ${où(f.key)} : ${v} (attendues : ${f.options.join(', ')})`);
       // Une image est un identifiant de dépôt, jamais son contenu : on vérifie qu'il désigne
@@ -474,6 +585,10 @@ export function validate(template, data) {
   };
 
   check(template.fields, data, '');
+  // Les règles qui croisent plusieurs champs (un plafond qui dépend du format, un champ qui dépend
+  // d'un autre) : le gabarit les porte, et leurs refus arrivent avec les autres.
+  if (template.check && data && typeof data === 'object' && !Array.isArray(data))
+    refus.push(...template.check(data));
   if (refus.length)
     throw Object.assign(new Error(refus.join(' · ')), { status: 400, refus });
   return data;

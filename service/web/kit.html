@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg">
-<title>oto — kit de marque</title>
+<title>kit de marque</title>
 <style>
 :root{--bg:#fefcf5;--surface:#fff;--hair:#e9dcb4;--ink:#2c2112;--soft:#4a3a23;--mute:#7a6c50;--faint:#aa9f7e;
   --terra:#d63d0a;--saffron:#f0b41e;--olive:#8aa620;
@@ -35,7 +35,7 @@ h1 .d{color:var(--terra)}
                    linear-gradient(45deg,#e7dcc0 25%,transparent 25%,transparent 75%,#e7dcc0 75%);
   background-size:14px 14px;background-position:0 0,7px 7px;background-color:#f4ecd6}
 .lg .vue.sombre{background-color:#2c2112;background-image:linear-gradient(45deg,#3a2d19 25%,transparent 25%,transparent 75%,#3a2d19 75%),linear-gradient(45deg,#3a2d19 25%,transparent 25%,transparent 75%,#3a2d19 75%)}
-.lg .vue img{height:96px;width:96px}
+.lg .vue img{height:96px;width:auto;max-width:88%;object-fit:contain}
 .lg .bas{padding:12px 14px 14px;border-top:1px solid var(--hair)}
 .lg .n{font-size:13.5px;font-weight:700}
 .lg .no{font-size:12px;color:var(--mute);margin:2px 0 9px;line-height:1.4}
@@ -62,54 +62,74 @@ h1 .d{color:var(--terra)}
 .notes p+p{margin-top:9px}
 .notes code{font-family:var(--mono);font-size:12.5px;background:#f4ecd6;padding:1px 5px;border-radius:5px}
 .err{color:var(--terra);font-weight:700}
+.marques{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.marques a{font-size:12.5px;font-weight:700;text-decoration:none;color:var(--soft);border:1px solid var(--hair);
+  border-radius:999px;padding:5px 12px;background:var(--bg)}
+.marques a[aria-current=page]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style></head>
 <body>
 <div class="wrap">
-  <h1>oto <span class="d">·</span> kit de marque</h1>
-  <p class="sub">Les visuels fixes de l'identité, un par emplacement LinkedIn. Rien à remplir :
-    on télécharge. Pour fabriquer un visuel, <a href="/">le générateur est là</a>.</p>
+  <nav class="marques" id="marques" aria-label="Marques"></nav>
+  <h1 id="titre">kit de marque</h1>
+  <p class="sub"><span id="intro"></span> Pour fabriquer un visuel, <a id="gen" href="/">le générateur est là</a>.</p>
   <p class="sub" id="ident"></p>
 
   <div class="sec">Le logo<span>SVG, et PNG transparents aux tailles utiles</span></div>
   <div class="logos" id="logos"></div>
 
-  <div class="sec">Les portraits<span>pour un post, un profil, une bio</span></div>
-  <div class="gens" id="photos"></div>
+  <div id="bloc-photos" hidden>
+    <div class="sec">Les portraits<span>pour un post, un profil, une bio</span></div>
+    <div class="gens" id="photos"></div>
+  </div>
 
-  <div class="sec">Le diaporama de profil<span>option Premium — 5 images maximum, 1584×396</span></div>
-  <div class="diapo" id="diapo"></div>
+  <div id="bloc-diapo" hidden>
+    <div class="sec">Le diaporama de profil<span>option Premium — 5 images maximum, 1584×396</span></div>
+    <div class="diapo" id="diapo"></div>
+  </div>
 
   <div class="sec">Les visuels<span>un par emplacement LinkedIn</span></div>
   <div class="grid" id="grid"></div>
 
-  <div class="notes">
-    <p><b>Le premier affichage rend les visuels</b> — quelques secondes par format, une seule fois :
-      ensuite ils sont servis depuis le cache, à la même adresse.</p>
-    <p><b>Zones que LinkedIn masque, déjà prises en compte :</b> la photo de profil et le logo de page
-      recouvrent le bas-gauche des couvertures, et le rognage mobile mange les bords — d'où le
-      contenu groupé au centre plutôt qu'aux angles.</p>
-    <p><b>La couverture de page est en 4200×700.</b> L'ancienne cote 1128×191, encore partout dans
-      les guides, a le même ratio 6:1 mais rend flou.</p>
-    <p><b>Le diaporama est une option Premium du profil PERSONNEL</b> — pas de la page entreprise, qui
-      garde sa couverture unique. Cinq images maximum, 1584×396, PNG, 8 Mo par image ; elles défilent en
-      boucle, donc chacune tient seule et répète l'adresse.</p>
-    <p><b>Les PNG de logo sont transparents</b>, et le damier derrière l'aperçu le montre. Le mark
-      complet n'est pas proposé sous 128 px : en dessous, son anneau décalé devient un cheveu et son
-      ombre un épaississement — c'est la variante <b>compact</b> qu'il faut, jusqu'à 16 px.</p>
-    <p>Les fichiers portent l'empreinte du dessin (<code id="v"></code>) : si la charte change,
+  <div class="notes" id="notes">
+    <p id="fin">Les fichiers portent l'empreinte du dessin (<code id="v"></code>) : si la charte change,
       ils se refont d'eux-mêmes au prochain passage.</p>
   </div>
 </div>
 
 <script type="module">
 const $ = s => document.querySelector(s);
+// Une page pour toutes les marques : /kit est Otomata, /kit/<marque> une autre. Le JSON suit la même règle.
+const suffixe = location.pathname.replace(/^\/kit/, '').replace(/\/$/, '');
 try {
-  const r = await fetch('/api/kit');
+  const r = await fetch(`/api/kit${suffixe}`);
   const kit = await r.json();
   if (!r.ok) throw new Error(kit.error || `erreur ${r.status}`);
+  const pre = kit.marque.fichiers;
 
+  document.title = kit.titre;
+  const [nom, ...reste] = kit.titre.split(' · ');
+  $('#titre').textContent = nom;
+  if (reste.length) {
+    const d = document.createElement('span'); d.className = 'd'; d.textContent = ' · ';
+    $('#titre').append(d, reste.join(' · '));
+  }
+  $('#intro').textContent = kit.intro;
+  $('#gen').href = `/#${kit.marque.id}`;
   $('#v').textContent = kit.version;
-  $('#ident').textContent = `${kit.identite.nom} — ${kit.identite.phrase} — ${kit.identite.url}`;
+  $('#ident').textContent = kit.identite;
+  const mark = kit.logos.find(l => l.clef === 'mark');
+  if (mark) document.querySelector('link[rel=icon]').href = mark.svg;
+  for (const m of kit.marques) {
+    const a = document.createElement('a');
+    a.href = m.kit; a.textContent = m.nom;
+    if (m.id === kit.marque.id) a.setAttribute('aria-current', 'page');
+    $('#marques').append(a);
+  }
+  // Les notes propres à la marque, avant la ligne sur l'empreinte. Texte de la marque (service/marques/).
+  for (const n of kit.notes) {
+    const p = document.createElement('p'); p.innerHTML = n;
+    $('#fin').before(p);
+  }
 
   const logos = $('#logos');
   for (const l of kit.logos) {
@@ -118,33 +138,33 @@ try {
     el.innerHTML =
       `<div class="vue ${l.fond === 'sombre' ? 'sombre' : ''}"><img alt="${l.nom}" src="${l.svg}"></div>` +
       `<div class="bas"><div class="n">${l.nom}</div><div class="no">${l.note}</div>` +
-      `<div class="px"><a class="svg" href="${l.svg}" download="otomata-${l.clef}.svg">SVG</a>` +
-      l.png.map(p => `<a href="${p.url}" download="otomata-${l.clef}-${p.taille}.png">${p.taille}</a>`).join('') +
+      `<div class="px"><a class="svg" href="${l.svg}" download="${pre}-${l.clef}.svg">SVG</a>` +
+      l.png.map(p => `<a href="${p.url}" download="${pre}-${l.clef}-${p.taille}.png">${p.taille}</a>`).join('') +
       `</div></div>`;
     logos.append(el);
   }
 
-  // Les portraits viennent de la charte : /brand en est le domicile, le kit y renvoie
-  // plutôt que d'en tenir une seconde copie.
-  const charte = await (await fetch('/brand/api')).json();
-  for (const ph of charte.photos) {
+  // Les portraits viennent de la charte (/brand en est le domicile, servis sous /brand/photo/).
+  $('#bloc-photos').hidden = !kit.photos.length;
+  for (const ph of kit.photos) {
     const el = document.createElement('article');
     el.className = 'p';
     el.innerHTML = `<img alt="${ph.nom}" src="${ph.url}">` +
       `<div class="bas"><div class="n" style="font-size:13px;font-weight:700">${ph.nom}</div>` +
       `<div class="no" style="font-size:12px;color:var(--mute);margin:2px 0 8px">${ph.role}</div>` +
-      `<div class="px"><a class="fort" href="${ph.url}" download="otomata-${ph.slug}.jpg" ` +
+      `<div class="px"><a class="fort" href="${ph.url}" download="${pre}-${ph.slug}.jpg" ` +
       `style="font-family:var(--mono);font-size:11.5px;text-decoration:none;background:var(--ink);color:var(--bg);border-radius:7px;padding:3px 8px;font-weight:700">JPG 1024</a></div></div>`;
     $('#photos').append(el);
   }
 
+  $('#bloc-diapo').hidden = !kit.diaporama.length;
   const diapo = $('#diapo');
   for (const d of kit.diaporama) {
     const el = document.createElement('div');
     el.className = 'dia';
     el.innerHTML = `<div class="num">${d.n}</div>` +
       `<div class="shot2"><span class="att">préparation…</span><img alt="${d.titre}" hidden></div>` +
-      `<a class="dl" href="${d.fichier}" download="otomata-diapo-${d.n}.png">PNG ${d.livre}</a>`;
+      `<a class="dl" href="${d.fichier}" download="${pre}-diapo-${d.n}.png">PNG ${d.livre}</a>`;
     diapo.append(el);
     const img = el.querySelector('img'), att = el.querySelector('.att');
     img.addEventListener('load', () => { img.hidden = false; img.classList.add('vu'); att.remove(); });
@@ -162,7 +182,9 @@ try {
       `<div class="meta"><span class="f">${v.format}</span>` +
       `<span class="c">${v.cible}</span>` +
       `<span class="d">${v.livre} · page ${v.page_css} rendue ${v.rendu}</span>` +
-      `<a class="dl" href="${v.fichier}" download="otomata-${v.format}.png">télécharger le PNG</a></div>`;
+      `<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="dl" href="${v.fichier}" download="${pre}-${v.format}.png">télécharger le PNG</a>` +
+      (v.fichier_jpg ? `<a class="dl" href="${v.fichier_jpg}" download="${pre}-${v.format}.jpg">JPEG, plus léger</a>` : '') +
+      `</div></div>`;
     grid.append(el);
 
     // L'attente est visible tant que l'image n'est pas là : le premier passage rend

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Cowork de l’IA">
+  <!-- Mark monochrome (blanc, #ffffff) : anneau (hors du disque, comme quand le disque plein le couvre), cerne et mer pleine ; la houle est en réserve (transparente). -->
+  <defs>
+    <clipPath id="cowork-disque-blanc"><circle cx="62" cy="64" r="50.4"/></clipPath>
+    <mask id="cowork-houle-blanc"><rect width="128" height="128" fill="#fff"/><path d="M0 88 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 M0 102 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0" fill="none" stroke="#000" stroke-width="3"/></mask>
+    <mask id="cowork-hors-disque-blanc"><rect width="128" height="128" fill="#fff"/><circle cx="62" cy="64" r="52" fill="#000"/></mask>
+  </defs>
+  <circle cx="56" cy="58" r="50.4" fill="none" stroke="#ffffff" stroke-width="3.2" mask="url(#cowork-hors-disque-blanc)"/>
+  <g clip-path="url(#cowork-disque-blanc)"><path d="M0 72 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 L128 128 L0 128 Z" fill="#ffffff" mask="url(#cowork-houle-blanc)"/></g>
+  <circle cx="62" cy="64" r="50.4" fill="none" stroke="#ffffff" stroke-width="3.2"/>
+</svg>

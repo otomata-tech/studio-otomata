@@ -1,7 +1,7 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg">
-<title>Otomata — charte de marque</title>
+<title>charte de marque</title>
 <style>
 :root{--bg:#fefcf5;--surface:#fff;--hair:#e9dcb4;--ink:#2c2112;--soft:#4a3a23;--mute:#7a6c50;--faint:#aa9f7e;
   --terra:#d63d0a;--saffron:#f0b41e;
@@ -49,61 +49,98 @@ tr:last-child td{border-bottom:0}
 .notes b{color:var(--ink)} .notes p+p{margin-top:9px}
 .notes code{font-family:var(--mono);font-size:12.5px;background:#f4ecd6;padding:1px 5px;border-radius:5px}
 .err{color:var(--terra);font-weight:700}
+.marques{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.marques a{font-size:12.5px;font-weight:700;text-decoration:none;color:var(--soft);border:1px solid var(--hair);
+  border-radius:999px;padding:5px 12px;background:var(--bg)}
+.marques a[aria-current=page]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sec code{font-family:var(--mono);font-size:12px}
+.tons-aff{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:14px;align-items:start}
+.taff{background:var(--bg);border:1px solid var(--hair);border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(44,33,18,.08)}
+.taff .svg svg{display:block;width:100%;height:auto}
+.taff ul{list-style:none;padding:10px 14px 14px;display:flex;flex-direction:column;gap:5px}
+.taff li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--soft)}
+.taff li i{width:16px;height:16px;border-radius:4px;border:1px solid rgba(44,33,18,.18);flex:none}
+.taff li code{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-left:auto}
+.gen{display:inline-block;margin-top:14px;background:var(--ink);color:var(--bg);text-decoration:none;border-radius:999px;
+  padding:10px 18px;font-size:14px;font-weight:700}
+.gen-note{font-size:12.5px;color:var(--mute);margin-left:10px}
 </style></head>
 <body><div class="wrap">
-  <h1>Otomata <span class="d">·</span> charte de marque</h1>
-  <p class="sub">Le mark, la palette, la typographie et les fichiers d'impression. Cette page est
-    publique : elle est faite pour être donnée telle quelle à un imprimeur, un presta ou un
-    partenaire. Tout y est téléchargeable, rien n'y demande de compte.</p>
+  <nav class="marques" id="marques" aria-label="Marques"></nav>
+  <h1 id="titre">charte de marque</h1>
+  <p class="sub" id="intro"></p>
 
-  <div class="sec">Le mark<span>SVG, et PNG transparents</span></div>
+  <div class="sec">Le logo<span id="st-logos"></span></div>
   <div class="cards" id="logos"></div>
 
-  <div class="sec">La palette<span>tokens <code style="font-family:var(--mono);font-size:12px">@otomata/ui</code></span></div>
+  <div class="sec">La palette<span id="st-palette"></span></div>
   <div class="pal" id="palette"></div>
 
   <div class="sec">La typographie</div>
   <table id="typo"><thead><tr><th>Rôle</th><th>Famille</th><th>Usage</th></tr></thead><tbody></tbody></table>
 
-  <div class="sec">Les portraits<span>publiés au nom d'Otomata, fond commun</span></div>
-  <div class="gens" id="photos"></div>
+  <div id="bloc-tons" hidden>
+    <div class="sec">Les quatre tons d'affiche<span>chaque ton est une combinaison fixe de la palette</span></div>
+    <div class="tons-aff" id="tons"></div>
+    <div id="generateur"></div>
+  </div>
 
-  <div class="sec">Merch<span>fichiers d'impression, PNG transparents 4000 px</span></div>
-  <div class="cards" id="merch"></div>
+  <div id="bloc-photos" hidden>
+    <div class="sec">Les portraits<span>publiés au nom d'Otomata, fond commun</span></div>
+    <div class="gens" id="photos"></div>
+  </div>
 
-  <div class="notes">
-    <p><b>Choisir un fichier de merch, c'est regarder la couleur du textile.</b> Sur un vêtement
-      jaune, le mark en couleur se noie — son disque et le fond se confondent ; sur un vêtement
-      foncé, il perd son cerne et son ombre, qui sont en encre. Les versions monochromes gardent
-      le décalage parce que c'est le <b>vide</b> entre le disque et l'anneau qui le porte.</p>
-    <p><b>Le mark tient jusqu'à 16 px.</b> En dessous de 32, l'anneau décalé devient un cheveu :
-      la variante <b>compacte</b> est là pour les surfaces rognées en cercle — avatar, pastille.</p>
-    <p><b>Spreadshirt</b> : PNG (seul format à porter la transparence), 200 dpi, 4000 × 4000 px
-      maximum, 10 Mo maximum. Les dimensions de la zone d'impression en centimètres dépendent du
-      produit — leur outil les affiche au téléversement, s'y fier plutôt qu'à une cote recopiée.</p>
-    <p><b>Les portraits forment une série</b> : même fond, même lumière, même cadrage, obtenus par
-      la procédure d'harmonisation de <code>brand/photos/</code>. Un portrait ajouté sans y passer
-      casse la série — deux photos de deux studios ne se ressemblent jamais.</p>
-    <p>Version de cette charte : <code id="v"></code>. Source de vérité :
+  <div id="bloc-merch" hidden>
+    <div class="sec">Merch<span>fichiers d'impression, PNG transparents 4000 px</span></div>
+    <div class="cards" id="merch"></div>
+  </div>
+
+  <div class="notes" id="notes">
+    <p id="fin">Version de cette charte : <code id="v"></code>. Source de vérité :
       <code>studio-otomata/brand/</code>.</p>
   </div>
 </div>
 
 <script type="module">
 const $ = s => document.querySelector(s);
+// Une page pour toutes les marques : /brand est Otomata, /brand/<marque> une autre.
+const suffixe = location.pathname.replace(/^\/brand/, '').replace(/\/$/, '');
 try {
-  const r = await fetch('/brand/api');
+  const r = await fetch(`/brand${suffixe}/api`);
   const b = await r.json();
   if (!r.ok) throw new Error(b.error || `erreur ${r.status}`);
+  const pre = b.marque.fichiers;
   $('#v').textContent = b.version;
+
+  document.title = b.titre;
+  const [nom, ...reste] = b.titre.split(' · ');
+  $('#titre').textContent = nom;
+  if (reste.length) {
+    const d = document.createElement('span'); d.className = 'd'; d.textContent = ' · ';
+    $('#titre').append(d, reste.join(' · '));
+  }
+  $('#intro').textContent = b.intro;
+  const mark = b.logos.find(l => l.clef === 'mark');
+  if (mark) document.querySelector('link[rel=icon]').href = mark.svg;
+  // Sous-titres et notes : textes de la marque (service/marques/), balisage compris.
+  $('#st-logos').innerHTML = b.sous_titres.logos;
+  $('#st-palette').innerHTML = b.sous_titres.palette;
+  for (const n of b.notes) { const p = document.createElement('p'); p.innerHTML = n; $('#fin').before(p); }
+  if (b.marques.length > 1)
+    for (const m of b.marques) {
+      const a = document.createElement('a');
+      a.href = m.charte; a.textContent = m.nom;
+      if (m.id === b.marque.id) a.setAttribute('aria-current', 'page');
+      $('#marques').append(a);
+    }
 
   for (const l of b.logos) {
     const el = document.createElement('article');
     el.className = 'c';
     el.innerHTML = `<div class="vue ${l.fond === 'sombre' ? 'sombre' : ''}"><img alt="${l.nom}" src="${l.svg}"></div>` +
       `<div class="bas"><div class="n">${l.nom}</div><div class="no">${l.note}</div><div class="px">` +
-      `<a class="fort" href="${l.svg}" download="otomata-${l.clef}.svg">SVG</a>` +
-      l.png.map(p => `<a href="${p.url}" download="otomata-${l.clef}-${p.taille}.png">${p.taille}</a>`).join('') +
+      `<a class="fort" href="${l.svg}" download="${pre}-${l.clef}.svg">SVG</a>` +
+      l.png.map(p => `<a href="${p.url}" download="${pre}-${l.clef}-${p.taille}.png">${p.taille}</a>`).join('') +
       `</div></div>`;
     $('#logos').append(el);
   }
@@ -112,29 +149,49 @@ try {
     const el = document.createElement('div');
     el.className = 'pg';
     el.innerHTML = `<h3>${g.titre}</h3><div class="tons">` + g.tons.map(t =>
-      `<div class="ton"><div class="sw" style="background:${t.hex}"></div><b>${t.nom}</b><code>${t.hex}</code></div>`).join('') + `</div>`;
+      `<div class="ton"${t.usage ? ` title="${t.usage.replace(/"/g, '&quot;')}"` : ''}><div class="sw" style="background:${t.hex}"></div><b>${t.nom}</b><code>${t.hex}</code></div>`).join('') + `</div>`;
     $('#palette').append(el);
   }
 
   $('#typo tbody').innerHTML = b.typo.map(t =>
     `<tr><td><b>${t.role}</b></td><td>${t.famille}</td><td style="color:var(--mute)">${t.usage}</td></tr>`).join('');
 
-  for (const ph of b.photos) {
+  // Les tons d'affiche : le SVG vient du dessin, produit par le service — ses titres demandent les polices.
+  if (b.tons) {
+    if (b.polices) {
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = b.polices; document.head.append(l);
+    }
+    $('#bloc-tons').hidden = false;
+    for (const t of b.tons) {
+      const el = document.createElement('article');
+      el.className = 'taff';
+      el.innerHTML = `<div class="svg">${t.svg}</div><ul>` + t.couleurs.map(c =>
+        `<li><i style="background:${c.hex}"></i>${c.role} · ${c.jeton}<code>${c.hex}</code></li>`).join('') + `</ul>`;
+      $('#tons').append(el);
+    }
+    if (b.generateur)
+      $('#generateur').innerHTML = `<a class="gen" href="${b.generateur.url}">${b.generateur.libelle} →</a>` +
+        `<span class="gen-note">${b.generateur.note}</span>`;
+  }
+
+  $('#bloc-photos').hidden = !b.photos?.length;
+  for (const ph of b.photos || []) {
     const el = document.createElement('article');
     el.className = 'p';
     el.innerHTML = `<img alt="${ph.nom}" src="${ph.url}">` +
       `<div class="bas"><div class="n">${ph.nom}</div><div class="no">${ph.role}</div>` +
-      `<div class="px"><a class="fort" href="${ph.url}" download="otomata-${ph.slug}.jpg">JPG 1024</a></div></div>`;
+      `<div class="px"><a class="fort" href="${ph.url}" download="${pre}-${ph.slug}.jpg">JPG 1024</a></div></div>`;
     $('#photos').append(el);
   }
 
-  for (const m of b.merch) {
+  $('#bloc-merch').hidden = !b.merch?.length;
+  for (const m of b.merch || []) {
     const el = document.createElement('article');
     el.className = 'c';
     el.innerHTML = `<div class="vue ${m.fond === 'sombre' ? 'sombre' : m.fond === 'saffran' ? 'saffran' : ''}">` +
       `<img alt="${m.id}" src="${m.url}"></div>` +
       `<div class="bas"><div class="n">${m.id}</div><div class="no">${m.sur}</div>` +
-      `<div class="px"><a class="fort" href="${m.url}" download="otomata-${m.id}.png">PNG ${m.taille}</a></div></div>`;
+      `<div class="px"><a class="fort" href="${m.url}" download="${pre}-${m.id}.png">PNG ${m.taille}</a></div></div>`;
     $('#merch').append(el);
   }
 } catch (e) {

@@ -69,7 +69,9 @@ banner exchange : c'est le signe d'un ProxyCommand qui attend une authentificati
 machine chargée.)*
 
 La palette et la typo sont **lues dans `brand/theme/theme.css`**, pas recopiées : la page publique
-dit forcément la même chose que les tokens que les sites importent.
+dit forcément la même chose que les tokens que les sites importent. (Depuis le 13/10/2026, ce qui est
+propre à Otomata — logos, palette, portraits, merch, notes — vit dans `service/marques/otomata.mjs` ;
+`brand.mjs` n'est plus que le moteur commun aux marques, cf. § « Deux marques ».)
 
 ### La page `/kit` — les visuels fixes de la marque
 
@@ -109,6 +111,93 @@ visuels suivants sortiraient troués. Vérifié par un test qui rend un visuel j
 chacune), pas de la page entreprise — qui garde sa couverture unique en 4200×700. Les cinq
 défilent en boucle : chacune tient seule et répète l'adresse, personne n'attend l'image suivante.
 
+### Deux marques : Otomata et le Cowork de l'IA
+
+Depuis le 13/10/2026 le studio sert une seconde marque, **le Cowork de l'IA** (un lieu Otomata à
+Marseille 6e, ouverture au printemps 2027, cowork.otomata.tech). Une **marque** porte ses logos, sa
+charte (palette, typo, ce qui lui est propre) et son kit ; les moteurs et les pages sont communs :
+
+| pièce | rôle |
+|---|---|
+| `service/marques.mjs` | le registre des marques, et la règle des adresses |
+| `service/marques/otomata.mjs` | Otomata : logos, palette lue dans `theme.css`, kit `kit-identite` + diaporama, portraits, merch |
+| `service/marques/cowork.mjs` | le Cowork : logos de `brand/logos/cowork/`, palette et typo lues dans `brand/cowork/tokens.json`, les quatre tons d'affiche, le kit |
+| `service/marques/cowork-affiche.mjs` | le dessin des affiches (`posts/cowork/affiche.js`) exécuté dans Node, et ses énumérations |
+| `service/kit.mjs`, `service/brand.mjs` | les moteurs du kit et de la charte, paramétrés par une marque |
+| `web/kit.html`, `web/brand.html` | une page pour toutes les marques : elles lisent leur marque dans l'adresse |
+
+**Adresses.** Otomata garde les siennes, inchangées. Le Cowork prend les mêmes sous son identifiant :
+
+| | Otomata | Cowork de l'IA |
+|---|---|---|
+| charte (PUBLIQUE) | `/brand`, `/brand/api`, `/brand/logo/…` | `/brand/cowork`, `/brand/cowork/api`, `/brand/cowork/logo/<variante>.svg` et `-<taille>.png` |
+| kit | `/kit`, `/api/kit`, `/kit/<format>.png`, `/kit/logo/…`, `/kit/diapo/…` | `/kit/cowork`, `/api/kit/cowork`, `/kit/cowork/<format>.png` (et `-apercu.png`), `/kit/cowork/logo/…` |
+
+`GET /api/marques` donne la liste à l'IHM, qui a un sélecteur de marque au-dessus du gabarit : il
+filtre les gabarits (chaque gabarit porte un champ `marque`) et fait suivre les liens du kit et de la
+charte. Le lien `/#cowork` ouvre le générateur sur la marque.
+
+⚠️ **`/brand/cowork` est public**, comme tout `/brand` (bypass Cloudflare Access sur le préfixe) : c'est
+voulu. Ce qui y est servi : la page, son JSON, les logos. Les quatre affiches d'exemple des tons sont
+des **SVG produits dans Node et posés dans le JSON** — aucune route publique ne déclenche un rendu
+Chrome, hors les PNG de logo sur liste fermée de tailles (même règle qu'Otomata).
+
+**Les logos larges** (`cowork-logo.svg`, mark + nom) se rastérisent à leur forme : la taille demandée
+est une largeur, la hauteur suit le `viewBox` (1024 → 1024×339). Un SVG sans `viewBox` lève une erreur.
+
+### L'affiche du Cowork de l'IA
+
+**Ce qui fait autorité** : le design system « Cowork de l'IA » publié sur Claude Design
+(<https://claude.ai/artifact/NHNVP9oFub3DLSPXVHPCbj>) pour le dessin et les jetons ;
+`brand/logos/cowork/` pour le logo. Le dépôt en garde **une copie de chaque**, lue partout :
+`posts/cowork/affiche.js` (le bundle, à l'octet, sous un en-tête qui dit d'où il vient) et
+`brand/cowork/tokens.json`. Une évolution se décide sur le design system, puis se recopie ici.
+
+**Le dessin tourne dans Node, pas dans la page.** `affiche.js` est un script de navigateur
+(`window.CoworkIA`) : on l'exécute dans un contexte `vm` qui lui fournit un `window`, et le gabarit
+pose le SVG obtenu dans `posts/cowork/template-affiche.html` (polices + cadre). Deux effets : aucune
+donnée de formulaire n'entre dans un `<script>` (le dessin échappe lui-même ses textes), et les
+énumérations du formulaire — motifs, tons, formats — **sont celles du dessin** : un ton ajouté au
+design system apparaît seul dans l'IHM et dans `/openapi.json`.
+
+**L'option `format`, ajoutée par le studio le 13/10/2026, est à reporter sur le design system.** Le
+bundle publié ne connaissait que le carré (1200×1200) et `hero` (3:2, 1200×760). La copie ajoute une
+table `FORMATS` — `carre`, `paysage` (= `hero`), `portrait` 1200×1500, `apercu` 1200×627, `profil`
+1584×396, `page` 1050×175 — qui place kicker, motif, titre et pied pour chaque cadre, la mer étendue
+à toute la largeur, la taille du titre bornée aussi en hauteur sur les formats bas, et un pied qui
+accepte une liste de lignes. `CoworkIA.FORMATS` est exporté. **API rétro-compatible, et carré comme
+3:2 rendent le même SVG qu'avant, à l'octet** (722 combinaisons comparées chaîne pour chaîne). Le
+diff se retrouve en comparant `components/bundle.js` du design system à `affiche.js` privé de son
+en-tête.
+
+⚠️ **Le 3:2 (`paysage`/`hero`) n'est composé que pour le motif marseille** : les quatre autres motifs y
+gardent leurs cotes du carré et passent sous le titre. C'est le dessin d'origine, gardé tel quel ; le
+gabarit ne propose donc pas ce format.
+
+**Le gabarit `affiche-cowork`** : format (`carre`, `portrait`, `apercu`, `profil`, `page`, aux cotes des
+emplacements de `posts/identite-formats.mjs` — vérifié au démarrage), motif, ton, titre (1 à 3 lignes),
+kicker, pied, chiffre. Ce qui dépend du format (lignes de titre, de kicker, de pied, longueur d'une
+ligne de pied) ou d'un autre champ (le chiffre n'existe qu'avec le motif `chiffre`, et y est
+obligatoire) passe par le crochet **`check(data)`** du gabarit, que `validate` appelle : ses refus
+arrivent avec les autres, en 400.
+
+**Le kit Cowork** reprend les six emplacements LinkedIn : post 4:5, carré et aperçu de lien en affiche
+« marseille » ton soleil (comme l’accueil du site) ; couvertures de profil et de page en affiche couchée, soleil levant à droite,
+titre et pied hors de la zone de la photo, ton mer ; avatar = le mark **compact** sur crème. Ses visuels passent
+par le gabarit (mêmes contrôles que le formulaire).
+
+⚠️ **Le ton `mer` ne va qu'avec le motif `soleil`** : sur le fond cobalt, la double impression
+saffran ou terra (mode produit) des autres motifs vire au vert sale. Le dessin lève une erreur, le
+gabarit refuse en 400 (règle reportée au design system). Le kit prend donc le ton `soleil` pour ses
+affiches marseille, comme l'affiche d'accueil du site.
+
+⚠️ **Les affiches pèsent lourd : un JPEG à côté du PNG.** Le grain de papier est un bruit pixel par
+pixel : un 4:5 rendu 2× pèse ~9 Mo en PNG, la couverture de page ~3,4 Mo — au-delà des **3 Mo** que
+LinkedIn accepte pour une couverture de page. Le gabarit et le kit Cowork livrent donc aussi un
+**JPEG qualité 90** (option `jpeg` du moteur : une seconde capture, `files.jpg`), et le kit le sert
+sous `/kit/cowork/<format>.jpg`. Le PNG reste la version sans perte. *(Un premier essai réduisait le
+PNG à 256 couleurs : ~2× moins lourd, mais encore 4,7 à 6 Mo pour un 4:5 — abandonné au profit du JPEG.)*
+
 ### Les gabarits
 
 Un gabarit = une entrée dans `service/templates.mjs` (manifeste de champs + construction
@@ -123,6 +212,7 @@ sans une ligne de front ni de documentation à écrire à côté.
 | `affiche-recul` | 1200×1500 | le pattern validé : la scène occupe tout, puis **recule** pour laisser monter la chute |
 | `kit-identite` | 6 formats | la carte de visite de la marque : post 4:5, carré, aperçu de lien, couvertures de profil et de page, avatar |
 | `banniere` | 1584×396 | une couverture, ou l'une des cinq images du diaporama Premium : un mark, une phrase, une adresse |
+| `affiche-cowork` | 5 formats | **marque Cowork de l'IA** : l'affiche risographie (motif, ton, titre, kicker, pied), en carré, 4:5, aperçu de lien, couvertures de profil et de page |
 
 **Un gabarit peut porter plusieurs tailles.** `kit-identite` déclare `sizes` (valeur du
 champ → `{width, height, scale}`) et `size_field` (le champ enum qui choisit) ; le serveur rend

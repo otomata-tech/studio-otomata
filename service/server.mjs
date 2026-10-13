@@ -11,6 +11,8 @@ import { openapi } from './openapi.mjs';
 import { render } from './render.mjs';
 import * as kit from './kit.mjs';
 import * as brand from './brand.mjs';
+import * as marques from './marques.mjs';
+import * as otomata from './marques/otomata.mjs';
 import * as uploads from './uploads.mjs';
 import * as photos from './photos.mjs';
 
@@ -88,7 +90,7 @@ const routes = [
     const tpl = templates.get(body.template);
     templates.validate(tpl, body.data);
     const id = randomBytes(8).toString('hex');
-    previews.set(id, { html: tpl.build(body.data), at: Date.now() });
+    previews.set(id, { html: construire(tpl, body.data), at: Date.now() });
     for (const [k, v] of previews) if (Date.now() - v.at > 6e5) previews.delete(k);
     return { id, url: `/previews/${id}` };
   }],
@@ -151,6 +153,9 @@ const routes = [
     catch (e) { refus.push(...(e.refus || [e.message])); }
     if (refus.length) throw Object.assign(new Error(refus.join(' · ')), { status: 400, refus });
 
+    // L'HTML se construit AVANT de créer le travail : un gabarit qui refuse ses données à la
+    // construction répond 400, sans laisser un job.json « en_cours » que /r/<id> attendrait à vie.
+    const html = construire(tpl, body.data);
     const id = `${new Date().toISOString().slice(0, 10)}-${tpl.id}-${randomBytes(3).toString('hex')}`;
     const job = {
       id, template: tpl.id, template_label: tpl.label, formats, data: body.data,
@@ -164,10 +169,12 @@ const routes = [
     // On rend en tâche de fond : la file du moteur sérialise, la réponse ne l'attend pas.
     // Un gabarit multi-formats (`sizes` + `size_field`) rend la taille que ses données
     // désignent : sans ça, le studio produirait un 4:5 pour une couverture de page.
-    const dim = tpl.sizes?.[body.data?.[tpl.size_field]] ?? tpl.size;
+    const choix = body.data?.[tpl.size_field];
+    const dim = (tpl.sizes && Object.hasOwn(tpl.sizes, choix) ? tpl.sizes[choix] : null) ?? tpl.size;
     render({
-      html: tpl.build(body.data), dir: join(WORK, id),
-      width: dim.width, height: dim.height, scale: dim.scale ?? 1, fps: tpl.fps, formats
+      html, dir: join(WORK, id),
+      width: dim.width, height: dim.height, scale: dim.scale ?? 1, fps: tpl.fps, formats,
+      jpeg: tpl.jpeg || 0
     }).then(({ files, ms }) => {
       saveJob({ ...readJob(id), status: 'fini', files, ms, finished_at: new Date().toISOString() });
     }).catch(err => {
@@ -195,77 +202,71 @@ const routes = [
     res.end(buf);
   }],
 
-  /* ---------- la charte, en accès PUBLIC ----------
-     Un seul préfixe `/brand` : une politique Cloudflare Access en bypass suffit à
-     l'ouvrir, et le reste du studio — générateur, rendus, galerie — reste fermé. */
-  ['GET', /^\/brand$/, (_a, _b, res) => serveWeb('brand.html', res)],
-  ['GET', /^\/brand\/api$/, () => brand.etat()],
-  ['GET', /^\/brand\/logo\/([a-z-]+)\.svg$/, ([clef], _b, res) => {
-    const buf = readFileSync(brand.logoSvg(clef));
-    res.writeHead(200, { 'Content-Type': MIME['.svg'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-  ['GET', /^\/brand\/logo\/([a-z-]+?)-(\d{1,4})\.png$/, async ([clef, taille], _b, res) => {
-    const buf = readFileSync(await brand.logoPng(clef, Number(taille)));
-    res.writeHead(200, { 'Content-Type': MIME['.png'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-  ['GET', /^\/brand\/photo\/([a-z-]+)\.jpg$/, ([slug], _b, res) => {
-    const buf = readFileSync(brand.photo(slug));
-    res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-  ['GET', /^\/brand\/merch\/([a-z0-9-]+)\.png$/, async ([id], _b, res) => {
-    const buf = readFileSync(await brand.merch(id));
-    res.writeHead(200, { 'Content-Type': MIME['.png'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-
-  /* ---------- le kit de marque ----------
-     Des visuels FIXES, à une adresse stable, hors de la galerie qui se purge : le
-     générateur sert à fabriquer, le kit à retrouver. Rendus à la demande au premier
-     accès, puis servis depuis le cache (cf. kit.mjs). */
-  ['GET', /^\/kit$/, (_a, _b, res) => serveWeb('kit.html', res)],
-  ['GET', /^\/api\/kit$/, () => kit.etat()],
-  // Le logo : SVG servi depuis brand/ (source de vérité, pas de copie), PNG rastérisés
-  // à la demande et transparents.
-  ['GET', /^\/kit\/diapo\/(\d)(-apercu)?\.png$/, async ([n, apercu], _b, res) => {
-    const buf = readFileSync(await kit.diapo(Number(n), { apercu: !!apercu }));
-    res.writeHead(200, { 'Content-Type': MIME['.png'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-
-  ['GET', /^\/kit\/logo\/([a-z-]+)\.svg$/, ([clef], _b, res) => {
-    const buf = readFileSync(kit.logoSvg(clef));
-    res.writeHead(200, { 'Content-Type': MIME['.svg'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-  ['GET', /^\/kit\/logo\/([a-z-]+?)-(\d{1,4})\.png$/, async ([clef, taille], _b, res) => {
-    const buf = readFileSync(await kit.logoPng(clef, Number(taille)));
-    res.writeHead(200, { 'Content-Type': MIME['.png'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
-
-  ['GET', /^\/kit\/([a-z0-9]+?)(-apercu)?\.png$/, async ([format, apercu], _b, res) => {
-    const p = await kit.visuel(format, { apercu: !!apercu });
-    const buf = readFileSync(p);
-    // L'URL porte l'empreinte des sources (`?v=`) : ce que ce chemin renvoie ne
-    // changera pas, on peut donc le laisser en cache côté navigateur.
-    res.writeHead(200, { 'Content-Type': MIME['.png'], 'Content-Length': buf.length,
-      'Cache-Control': 'public, max-age=86400' });
-    res.end(buf);
-  }],
+  /* ---------- la charte et le kit, par marque ----------
+     Routes générées pour chaque marque de service/marques.mjs : Otomata garde ses adresses
+     historiques (/brand, /kit…), une autre marque les prend sous son identifiant (/brand/cowork,
+     /kit/cowork…). Les photos et le merch d'Otomata, propres à la marque, suivent. */
+  ...marques.ids().flatMap(id => routesMarque(marques.get(id))),
+  ['GET', /^\/brand\/photo\/([a-z-]+)\.jpg$/, ([slug], _b, res) => servirFichier(res, otomata.photo(slug), 'image/jpeg')],
+  ['GET', /^\/brand\/merch\/([a-z0-9-]+)\.png$/, async ([id], _b, res) => servirFichier(res, await otomata.merch(id), MIME['.png'])],
+  ['GET', /^\/api\/marques$/, () => ({ marques: marques.liste() })],
 
   ['GET', /^\/$/, (_a, _b, res) => serveWeb('index.html', res)],
   ['GET', /^\/([\w.-]+\.(?:css|js|html|svg))$/, ([f], _b, res) => serveWeb(f, res)]
 ];
+
+/** Les routes de la charte (PUBLIQUE, sous /brand) et du kit d'une marque. Le préfixe de la
+ *  marque par défaut est vide : /brand, /kit — les adresses d'avant le multi-marques. */
+function routesMarque(m) {
+  const p = marques.chemin(m).replace(/\//g, '\\/');
+  const re = motif => new RegExp(`^${motif}$`);
+  const png = async (res, fichier) => servirFichier(res, await fichier, MIME['.png']);
+  return [
+    // ⚠️ PUBLIC : la page, son JSON et les logos. Rien d'autre ne doit entrer sous /brand.
+    ['GET', re(`\\/brand${p}`), (_a, _b, res) => serveWeb('brand.html', res)],
+    ['GET', re(`\\/brand${p}\\/api`), () => brand.etat(m)],
+    ['GET', re(`\\/brand${p}\\/logo\\/([a-z-]+)\\.svg`), ([clef], _b, res) =>
+      servirFichier(res, brand.logoSvg(m, clef), MIME['.svg'])],
+    ['GET', re(`\\/brand${p}\\/logo\\/([a-z-]+?)-(\\d{1,4})\\.png`), ([clef, taille], _b, res) =>
+      png(res, brand.logoPng(m, clef, Number(taille)))],
+
+    /* Le kit : des visuels FIXES, à une adresse stable, hors de la galerie qui se purge — le
+       générateur sert à fabriquer, le kit à retrouver. Rendus à la demande au premier accès,
+       puis servis depuis le cache (cf. kit.mjs). Logos : SVG servis depuis brand/ (pas de
+       copie), PNG rastérisés à la demande et transparents. */
+    ['GET', re(`\\/kit${p}`), (_a, _b, res) => serveWeb('kit.html', res)],
+    ['GET', re(`\\/api\\/kit${p}`), () => kit.etat(m)],
+    ['GET', re(`\\/kit${p}\\/diapo\\/(\\d)(-apercu)?\\.png`), ([n, apercu], _b, res) =>
+      png(res, kit.diapo(m, Number(n), { apercu: !!apercu }))],
+    ['GET', re(`\\/kit${p}\\/logo\\/([a-z-]+)\\.svg`), ([clef], _b, res) =>
+      servirFichier(res, kit.logoSvg(m, clef), MIME['.svg'])],
+    ['GET', re(`\\/kit${p}\\/logo\\/([a-z-]+?)-(\\d{1,4})\\.png`), ([clef, taille], _b, res) =>
+      png(res, kit.logoPng(m, clef, Number(taille)))],
+    ['GET', re(`\\/kit${p}\\/([a-z0-9]+?)(-apercu)?\\.png`), ([format, apercu], _b, res) =>
+      png(res, kit.visuel(m, format, { apercu: !!apercu }))],
+    ['GET', re(`\\/kit${p}\\/([a-z0-9]+)\\.jpg`), async ([format], _b, res) =>
+      servirFichier(res, await kit.visuel(m, format, { ext: 'jpg' }), MIME['.jpg'])],
+  ];
+}
+
+/** Un fichier de la charte ou du kit. Son URL porte l'empreinte des sources (`?v=`) : ce que
+ *  ce chemin renvoie ne changera pas, on peut donc le laisser en cache côté navigateur. */
+function servirFichier(res, chemin, type) {
+  const buf = readFileSync(chemin);
+  res.writeHead(200, { 'Content-Type': type, 'Content-Length': buf.length,
+    'Cache-Control': 'public, max-age=86400' });
+  res.end(buf);
+}
+
+/** L'HTML d'un gabarit. Une erreur levée à la construction vient des données (un dessin qui
+ *  refuse une combinaison, un partenaire sans logo ni nom) : c'est un 400, pas une panne. */
+function construire(tpl, data) {
+  try { return tpl.build(data); }
+  catch (e) {
+    if (e.status) throw e;
+    throw Object.assign(new Error(`construction impossible : ${e.message}`), { status: 400 });
+  }
+}
 
 function serveWeb(name, res) {
   const p = join(DIR, 'web', basename(name));
@@ -281,6 +282,17 @@ function serveWeb(name, res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
+    // Défense en profondeur : `new URL` résout `/brand/%2e%2e/api/renders` (ou `\..\`) en
+    // `/api/renders` — un chemin public qui ouvrirait une route fermée si Cloudflare ne
+    // normalisait pas avant nous. Un chemin brut qui n'est pas déjà sa forme résolue est refusé.
+    const brut = req.url.split('?')[0];
+    if (/\.\.|%2e|\\/i.test(brut) || brut !== url.pathname)
+      throw Object.assign(new Error('chemin refusé'), { status: 400 });
+    // `/brand/` et `/kit/cowork/` : la barre finale renvoie vers l'adresse sans barre.
+    if (req.method === 'GET' && url.pathname.length > 1 && url.pathname.endsWith('/')) {
+      res.writeHead(301, { Location: url.pathname.replace(/\/+$/, '') + url.search });
+      return res.end();
+    }
     for (const [method, re, handler, opts] of routes) {
       if (req.method !== method) continue;
       const m = url.pathname.match(re);

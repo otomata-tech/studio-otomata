@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Cowork de l’IA">
+  <!-- Mark du Cowork de l’IA — arrêté le 2026-10-13 (piste « le soleil sur la mer »).
+       Le disque saffran et l’anneau décalé du mark Otomata, coupés par la mer de Marseille :
+       le soleil d’Otomata se lève sur le Cowork. Ordre de dessin : anneau, disque, mer, houle, cerne. -->
+  <defs><clipPath id="cowork-disque"><circle cx="62" cy="64" r="50.4"/></clipPath></defs>
+  <circle cx="56" cy="58" r="50.4" fill="none" stroke="#f0b41e" stroke-width="3.2"/>
+  <circle cx="62" cy="64" r="50.4" fill="#f0b41e"/>
+  <g clip-path="url(#cowork-disque)">
+    <path d="M0 72 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 q 8 -6 16 0 q 8 6 16 0 L128 128 L0 128 Z" fill="#1f6dba"/>
+    <path d="M0 88 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 M0 102 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0 q 8 -5 16 0 q 8 5 16 0" fill="none" stroke="#fefcf5" stroke-width="3"/>
+  </g>
+  <circle cx="62" cy="64" r="50.4" fill="none" stroke="#0b2e54" stroke-width="3.2"/>
+</svg>

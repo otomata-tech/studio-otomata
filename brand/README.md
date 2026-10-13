@@ -2,12 +2,12 @@
 
 ## 📍 Ce dossier est la source de vérité du design Otomata
 
-**Pour toute question de charte — palette, typo, logos, tokens — c'est ici qu'on regarde, et ici qu'on met à jour.** Les autres emplacements (le monorepo `oto-websites`, le design-system du dashboard, le Drive `identite/`) en sont des **consommateurs** : ils appliquent la charte, ils ne la définissent pas.
+**Pour toute question de charte — palette, typo, logos, tokens — c'est ici qu'on regarde, et ici qu'on met à jour.** Les autres emplacements (le monorepo `oto-websites`, le design-system du dashboard) en sont des **consommateurs** : ils appliquent la charte, ils ne la définissent pas.
 
 Concrètement :
 - une évolution de charte se fait **d'abord ici**, puis se propage aux consommateurs ;
 - en cas de divergence entre ce dossier et un autre emplacement, **c'est ce dossier qui a raison** ;
-- avant de recopier une charte trouvée ailleurs sur le disque ou sur le Drive, vérifier ici — plusieurs copies périmées circulent (voir l'avertissement sur le README du Drive, plus bas).
+- avant de recopier une charte trouvée ailleurs sur le disque ou sur le Drive, vérifier ici — plusieurs copies périmées circulent.
 
 *(Historiquement l'inverse : ce dossier était un cache des repos d'origine. Inversé le 2026-08-12 — trop de copies divergentes, aucune ne faisant autorité.)*
 
@@ -53,6 +53,42 @@ pages. Les fichiers ont été supprimés le 2026-09-03, ici comme dans `oto-webs
 `otomata.tech` sert désormais **un seul fichier**, `public/logo-otomata.svg` (le mark complet),
 déclaré à la fois comme `rel="icon"` et comme `logo` du JSON-LD.
 
+## Le Cowork de l'IA — la marque du lieu
+
+**Le Cowork de l'IA** est un lieu Otomata à Marseille 6e (ouverture au printemps 2027,
+cowork.otomata.tech). Il a sa propre identité, née de la charte Otomata le 13/10/2026 : les mêmes
+jetons (crème, encre brune, quatre confettis, trois polices), une autre voix — des **affiches façon
+risographie** (aplat, tartan tramé, formes doublées d'une copie décalée, grand titre Bricolage
+Grotesque 800 crème à ombre d'encre, grain) et **une seule encre** pour la structure, le bleu mer
+`#1f6dba`.
+
+**Ce qui fait autorité, et où :**
+
+| quoi | autorité | copie dans ce dépôt |
+|---|---|---|
+| le dessin des affiches | le design system « Cowork de l'IA » sur Claude Design (<https://claude.ai/artifact/NHNVP9oFub3DLSPXVHPCbj>, `components/bundle.js`), lui-même porté de `cowork.otomata.tech/src/components/Affiche.vue` | `posts/cowork/affiche.js` — le bundle à l'octet, plus l'option `format` ajoutée par le studio (à reporter sur le design system, cf. `service/README.md`) |
+| les jetons (couleurs, typo, espacements) | le même design system (`tokens.json`) | `cowork/tokens.json`, copie à l'octet (un JSON ne porte pas de commentaire : sa provenance est ici et dans son bloc `meta`) |
+| le logo | **ce dossier** : `logos/cowork/`, arrêté le 13/10/2026 | aucune — le studio le sert depuis `logos/cowork/` |
+
+Une évolution du dessin ou des jetons se décide sur le design system, puis se recopie ici ; une
+évolution du logo se fait ici, puis se reporte sur le design system (son guide dit encore, au
+13/10/2026, que le lieu « signe avec le mark d'Otomata » : c'est périmé).
+
+### `logos/cowork/` — le soleil sur la mer
+- `cowork-mark.svg` — **LE mark** : un disque saffran sur lequel monte une mer bleue à vagues crème, cerné de bleu nuit `#0b2e54`, et l'anneau saffran décalé (la grammaire du mark Otomata). Complet, il tient jusqu'à 16 px : c'est le favicon
+- `cowork-mark-compact.svg` — le disque seul, pour les surfaces **rognées en cercle** (avatar LinkedIn, pastille)
+- `cowork-mark-mono-encre.svg` / `cowork-mark-mono-blanc.svg` — monochromes, fond clair / fond sombre
+- `cowork-logo.svg` — le mark et « Cowork de l'IA » en bleu mer, texte vectorisé (aucune police à installer)
+- `cowork-logo-sur-sombre.svg` — le même, le nom en crème
+
+### Publiée en ligne
+- **`studio.oto.zone/brand/cowork`** — la charte **publique** : logos (SVG et PNG transparents), palette lue dans `cowork/tokens.json`, typo, les quatre tons d'affiche avec un exemple chacun.
+- **`studio.oto.zone/kit/cowork`** — le kit (derrière Access) : un visuel par emplacement LinkedIn, dans le langage des affiches.
+- **Le gabarit « Affiche du Cowork de l'IA »** du générateur (`affiche-cowork`) — une affiche à soi : un événement, une offre.
+
+Le ton (guide du design system) : prix toujours avec « HT » et son unité, lieu « Marseille 6e » et
+jamais d'adresse avant la signature du bail, jamais d'emoji, jamais de chiffre ni de témoignage inventé.
+
 ## Publiée en ligne
 
 La charte est servie par le studio sur **`studio.oto.zone/brand`** — mark et déclinaisons,
@@ -63,10 +99,10 @@ Le code : `studio-otomata/service/brand.mjs` + `service/web/brand.html`.
 ## Arborescence
 
 ### `charte/` — la charte formelle (document présentable)
-- `charte-graphique.pdf` / `.html` — **charte graphique Otomata**, le document à envoyer à un tiers (presta, imprimeur, client). Aligné sur la palette `@otomata/ui`. Source : Drive `identite/`.
+- `charte-graphique.pdf` / `.html` — **charte graphique Otomata**, le document à envoyer à un tiers (presta, imprimeur, client). Aligné sur la palette `@otomata/ui`.
 - `palette.svg` — planche de la palette
 
-⚠️ **Le `README.md` qui accompagne la charte sur le Drive est périmé** : il décrit l'ancienne palette (orange `#E67E22`, bleu `#3498DB`, vert `#27AE60`, anthracite `#2C3E50`), abandonnée depuis. C'est `charte-graphique.html` (mai 2026) qui fait foi, et il utilise bien saffran/crème/encre. Ne pas appliquer le README du Drive.
+**2026-10-05 — le Drive `identite/` ne porte plus de copie de la charte ni des logos.** La copie a dérivé : sa recette ne recopiait pas les logos, l'ancien glyphe y est resté après le 03/09 et a été publié sur la fiche France Num. Un tiers reçoit `studio.oto.zone/brand`, un agent lit ce dossier. `identite/README.md` n'est plus qu'un pointeur vers ici (il garde les photos d'équipe et le merch t-shirt).
 
 ### `slider/` — charte de slides Otomata
 Charte maison pour le moteur [`otomata-tech/slider`](https://github.com/otomata-tech/slider) : `tokens.json` (palette reprise de `theme/theme.css`) + logos (**le mark Otomata et l'open O d'oto** ; le glyphe violet en est parti le 2026-09-03). Le moteur ignore `chartes/*` sauf son placeholder `blank`, donc la charte vit ici et s'y monte par lien symbolique — voir `slider/README.md`. Avant, aucune charte Otomata n'existait : tout deck sortant sous notre nom était re-charté à la main.
@@ -158,7 +194,7 @@ Ces emplacements **implémentent** la charte définie ici. Une évolution part d
 |---|---|---|
 | `oto-websites/packages/ui/` | tokens `@otomata/ui` (`THEME.md`, `src/theme.css`), consommés en `"*"` local par `web/`, `extension/` et les `sites/*` | `theme/` |
 | `oto-dashboard/frontend/src/assets/console.css` | les tokens dashboard *vivants* (`:root`), consommés en `var(--…)` par les vues console | `theme/dashboard-tokens/` |
-| Drive `otomata-shared/identite/` | la charte formelle diffusée aux tiers | `charte/` |
+| Fiche Activateur France Num (`extranet.francenum.gouv.fr`) | le mark Otomata en PNG 512×512 fond blanc, téléversé à la main le 2026-10-05 : une évolution du mark s'y reporte à la main | `logos/otomata/otomata-mark.svg` |
 | `oto-websites/sites/*/public/`, `oto-cli/logo.svg` | logos en production | `logos/` |
 | `oto-websites/web/public/` (oto.cx), `oto-websites/sites/docs.oto.cx/public/`, `oto-dashboard/frontend/public/` | favicons d'oto, **copies à l'octet** : `favicon.svg` ← `oto-dashboard-mark.svg`, `favicon-NxN.png` ← `oto-mark-N.png`, `favicon.ico` ← `oto-mark.ico` (oto.cx et docs.oto.cx, depuis le 2026-09-13), `apple-touch-icon.png` ← `oto-mark-apple-touch-180.png` (celui du dashboard depuis le 2026-09-13 : en préprod, en prod au prochain tag de manage.oto.cx), `android-chrome-NxN.png` ← `oto-mark-N.png` | `logos/oto/` |
 | `auth.oto.cx` (Logto, page de connexion) | logo et favicon = l'**URL** `https://oto.cx/favicon.svg` : suit oto.cx sans copie | `logos/oto/oto-dashboard-mark.svg` |

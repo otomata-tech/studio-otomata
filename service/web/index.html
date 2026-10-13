@@ -114,12 +114,20 @@ textarea{resize:vertical;min-height:56px}
 .garde b{color:#4a3a23}
 .ate-pied{display:flex;gap:10px;align-items:center;padding:14px 18px;border-top:1px solid var(--hair);background:var(--bg)}
 .ate-pied .status{margin:0;flex:1}
+.marques{display:flex;gap:6px;margin:4px 0 2px;padding:4px;background:#f4ecd6;border:1px solid var(--hair);border-radius:999px;width:max-content;max-width:100%}
+.marques button{border:none;background:transparent;border-radius:999px;padding:8px 16px;font-size:14px;font-weight:700;color:var(--soft);cursor:pointer}
+.marques button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.marques button:hover:not([aria-selected=true]){color:var(--terra)}
 </style></head>
 <body>
 <div class="panel">
   <h1>oto <span class="d">·</span> studio</h1>
-  <div class="sub">choisissez un gabarit, remplissez, regardez, exportez.<br>
-    les visuels fixes de la marque sont dans le <a href="/kit" style="color:var(--soft);font-weight:700">kit de marque</a>.</div>
+  <div class="sub">choisissez une marque et un gabarit, remplissez, regardez, exportez.<br>
+    les visuels fixes de la marque sont dans son <a id="lien-kit" href="/kit" style="color:var(--soft);font-weight:700">kit de marque</a>,
+    sa charte publique <a id="lien-charte" href="/brand" style="color:var(--soft);font-weight:700">ici</a>.</div>
+
+  <!-- La marque d'abord : elle décide des gabarits proposés, du kit et de la charte liés. -->
+  <div class="marques" id="marques" role="tablist" aria-label="Marque"></div>
 
   <details class="notice" id="notice">
     <summary>Comment ça marche</summary>
@@ -657,7 +665,7 @@ async function gallery() {
 }
 
 async function reprendre(r) {
-  sel.value = r.template;
+  choisirMarque(templates.find(t => t.id === r.template).marque, r.template);
   await sel.onchange();                       // charge le manifeste, pose l'exemple
   for (const k of Object.keys(state)) delete state[k];
   Object.assign(state, structuredClone(r.data));
@@ -678,12 +686,33 @@ notice.addEventListener('toggle', () => {
 });
 
 const { templates } = await api('/api/templates');
+const { marques } = await api('/api/marques');
 const sel = $('#tpl');
-for (const t of templates) sel.append(new Option(t.label, t.id));
-// L'adresse retient le gabarit : un lien peut pointer un gabarit précis, et un
-// rechargement ne renvoie pas sur le premier de la liste.
+let marque = null;
+
+/** Choisir une marque : la liste ne montre que ses gabarits, et les liens du kit et de la
+ *  charte suivent. `gabarit` : celui à sélectionner, à défaut le premier de la marque. */
+function choisirMarque(id, gabarit) {
+  marque = marques.find(m => m.id === id) || marques[0];
+  for (const b of $('#marques').children) b.setAttribute('aria-selected', String(b.dataset.id === marque.id));
+  sel.textContent = '';
+  for (const t of templates.filter(t => t.marque === marque.id)) sel.append(new Option(t.label, t.id));
+  if (gabarit) sel.value = gabarit;
+  $('#lien-kit').href = marque.kit;
+  $('#lien-charte').href = marque.charte;
+}
+for (const m of marques) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.id = m.id; b.textContent = m.nom;
+  b.onclick = () => { if (m.id !== marque.id) { choisirMarque(m.id); sel.onchange(); } };
+  $('#marques').append(b);
+}
+// L'adresse retient le gabarit — ou la seule marque (`#cowork`, le lien que donnent le kit et
+// la charte) : un lien peut pointer un gabarit précis, et un rechargement ne renvoie pas sur
+// le premier de la liste.
 const voulu = decodeURIComponent(location.hash.slice(1));
-if (templates.some(t => t.id === voulu)) sel.value = voulu;
+const gabaritVoulu = templates.find(t => t.id === voulu);
+choisirMarque(gabaritVoulu ? gabaritVoulu.marque : voulu, gabaritVoulu?.id);
 sel.onchange = async () => {
   const request = ++selectionRequest;
   history.replaceState(null, '', '#' + sel.value);

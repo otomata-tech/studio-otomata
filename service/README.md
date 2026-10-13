@@ -40,6 +40,44 @@ un Claude qui travaillait ailleurs a refait un visuel en HTML à la main, hors c
 ajouté apparaît seul dans le contrat ; le tableau « quel gabarit pour quoi » de la procédure, lui,
 se complète à la main.
 
+### Accès — le service vérifie lui-même le jeton Cloudflare Access
+
+Jusqu'au 13/10/2026, le service n'avait **aucune** auth applicative : il comptait sur Cloudflare
+Access devant le vhost. Or Access ne protège que ce qui passe par lui — l'API privée répondait 200
+en appelant l'origine en direct (IP de la box, Host forcé). Le snippet Caddy `(cloudflare_seulement)`
+ferme l'accès hors des plages Cloudflare, mais un tiers passant par **sa propre** zone Cloudflare y
+arrive encore. La parade complète est ici : `service/acces.mjs`, appliqué **avant tout routage**.
+
+La règle se décide sur le **pair TCP** (`req.socket.remoteAddress`), jamais sur un en-tête
+(`X-Forwarded-For` se forge) :
+
+| Pair | Chemin | Décision |
+|---|---|---|
+| tout pair | `/healthz` | libre (sonde de `update.sh`) |
+| loopback (= Caddy, donc Cloudflare) | `/brand`, `/brand/*` | libre — bypass Access, Cloudflare n'y envoie **pas** de jeton |
+| loopback | tout le reste (IHM, `/kit`, `/api/*`, `/r/*`, `/files/*`, `/openapi.json`…) | jeton Access valide exigé |
+| réseau privé `172.16.0.0/12` | tout | libre — les agents (`http://172.16.16.3:8100`) |
+| tout autre pair | tout | refus |
+
+Un jeton valide (`Cf-Access-Jwt-Assertion`) : signé RS256 par une clé de
+`https://otomata-tech.cloudflareaccess.com/cdn-cgi/access/certs` (mises en cache, rechargées sur `kid`
+inconnu ou après 12 h, 30 s minimum entre deux rechargements), `iss` = cette équipe, `aud` contient
+l'AUD de l'app « studio.otomata.tech » (constante dans `acces.mjs`, d'où elle vient y est dit), `exp` /
+`nbf` à 60 s près, email en `@otomata.tech`. Clés injoignables = refus et une ligne au journal, jamais
+d'ouverture. Le refus répond `403 {"error":"accès refusé"}` ; la raison ne va qu'au journal.
+
+⚠️ **Recréer l'app Access change son AUD** : il faut le relever à nouveau dans `acces.mjs`, sinon
+tout humain est refusé (le journal dit alors « audience inattendue »).
+
+**Mode** : constante `MODE_ACCES` de `server.mjs`. En `'observation'` (posé le 13/10/2026), le verdict
+est journalisé (`journalctl -u oto-studio | grep '\[accès\]'`) et rien n'est bloqué — on ne peut pas
+obtenir de vrai jeton sans connexion humaine, et un contrôle faux aurait enfermé l'équipe dehors. En
+`'exige'`, ce qui n'est pas libre sans jeton valide reçoit 403. Tant qu'on est en observation, Access
+reste contournable.
+
+Tests : `node --test 'service/*.test.mjs'` (paire RSA et jeu de clés fabriqués par le test, la prod n'est pas
+sollicitée).
+
 ### La page `/brand` — la charte, en accès PUBLIC
 
 `GET /brand` : le mark et ses déclinaisons, la palette, la typographie, les fichiers d'impression

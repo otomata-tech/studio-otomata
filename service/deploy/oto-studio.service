@@ -21,8 +21,9 @@ RestartSec=5
 # D'où l'écoute sur 0.0.0.0 : ce qui ferme la porte côté Internet est le groupe de
 # sécurité `otomata-0-sg` (politique inbound = drop ; seuls 80, 443, 45876 depuis le hub
 # de supervision, et ANY depuis 172.16.16.0/22). Le port 8100 n'y est PAS ouvert
-# publiquement. ⚠️ Ce service n'a aucune auth applicative : si cette règle changeait, il
-# serait pilotable par quiconque atteint le port. À revérifier avant tout élargissement.
+# publiquement. ⚠️ Le service laisse passer SANS jeton tout pair de 172.16.0.0/12 (les
+# agents, cf. service/acces.mjs) et refuse les autres pairs directs : si le réseau privé
+# s'élargissait à des machines non sûres, elles piloteraient le studio. À revérifier avant.
 Environment=STUDIO_HOST=0.0.0.0
 Environment=STUDIO_PORT=8100
 Environment=STUDIO_CHROME=/usr/bin/google-chrome

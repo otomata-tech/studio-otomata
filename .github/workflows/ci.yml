@@ -20,3 +20,5 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Intégrité du studio (modules, imports, JSON, CSS)
         run: node .github/check.mjs
+      - name: Contrôle d'accès (jeton Cloudflare Access, règle par pair)
+        run: node --test 'service/*.test.mjs'

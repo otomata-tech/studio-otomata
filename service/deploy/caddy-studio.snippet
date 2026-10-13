@@ -1,8 +1,12 @@
 # --- studio.otomata.tech — studio de visuels (API + IHM, :8100) ---------------
 #     Ex-studio.oto.zone, déplacé le 13/10/2026 (l'ancien nom redirige, bloc suivant).
-#     ⚠️ AUCUNE auth applicative dans le service : l'accès DOIT être fermé par
-#     Cloudflare Access (Zero Trust) AVANT que le record DNS soit créé. Même
-#     règle et même raison que mucho.oto.zone, plus bas dans ce fichier.
+#     Le service vérifie lui-même le jeton Cloudflare Access (Cf-Access-Jwt-Assertion :
+#     signature, audience, compte otomata.tech) depuis le 13/10/2026 : sans jeton
+#     valide, 403 — sauf /brand, public, et les agents (pair 172.16.16.5 exactement).
+#     Ce jeton n'existe que si Access est en place : l'app Access DOIT exister AVANT
+#     le record DNS (même règle que mucho.oto.zone, plus bas dans ce fichier).
+#     Recréer l'app change son AUD : le relever dans service/acces.mjs du studio,
+#     sinon tout humain est refusé.
 #     Les agents passent par le réseau privé (172.16.16.3:8100), pas par ce nom.
 #
 #     Access (posé le 13/10/2026, avant le DNS) :

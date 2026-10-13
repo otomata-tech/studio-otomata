@@ -58,7 +58,8 @@ function couleurs() {
 // L'ordre de lecture de la palette. Toute couleur du fichier doit y être rangée : un jeton ajouté au
 // design system et absent d'ici lève une erreur au lieu de disparaître de la charte.
 const GROUPES = [
-  ['L’encre unique', ['encre', 'encre-filet']],
+  ['La page', ['fond', 'texte', 'texte-doux', 'encre', 'encre-filet', 'accent']],
+  ['Le papier, posé sur la page', ['papier', 'papier-texte', 'papier-texte-doux', 'papier-encre', 'papier-filet', 'papier-accent']],
   ['Papier et encre brune', ['bg', 'surface', 'paper-2', 'paper-3', 'hair', 'hair-soft', 'ink', 'ink-soft', 'mute', 'faint']],
   ['Saffran', ['saffron', 'saffron-soft', 'saffron-ink', 'on-saffron']],
   ['Terra', ['terra', 'terra-soft', 'terra-ink']],
@@ -181,8 +182,10 @@ export const marque = {
         note: 'réservé à l’équipe Otomata (connexion demandée)' },
     }),
     notes: [
-      '<b>Une seule encre pour la structure</b> : le bleu mer <code>#1f6dba</code>. Titres, filets, liens, prix. '
-        + 'Les autres couleurs de la charte s’expriment dans les affiches, et seulement là.',
+      '<b>La page en bleu mer, le papier crème</b> : la page du site est en bleu mer <code>#1f6dba</code>, texte crème ; '
+        + 'les blocs posés dessus (cartes, encadrés, formulaires) sont du papier crème à encre foncée. Le saffran n’y sert '
+        + 'qu’au décor (filets, puces, soulignés) : sur le bleu, il ne tient pas en texte. Les autres couleurs de la charte '
+        + 's’expriment dans les affiches.',
       '<b>Le logo, c’est le soleil sur la mer.</b> Le mark complet tient jusqu’au favicon (16 px). La variante '
         + '<b>compacte</b> (le disque seul) sert aux surfaces rognées en cercle, où l’anneau décalé tomberait hors du visible.',
       '<b>L’affiche se règle, elle ne se redessine pas</b> : un motif, un ton, un titre court, un pied. Pas de cinquième '

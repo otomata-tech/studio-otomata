@@ -25,7 +25,7 @@ const KEEP = Number(process.env.STUDIO_KEEP || 60);   // travaux gardés dans la
 // L'adresse par laquelle un HUMAIN atteint ce service. Elle n'a rien à voir avec celle
 // par laquelle un agent l'appelle (réseau privé) : un agent qui rend un lien doit rendre
 // celui qu'on peut ouvrir dans un navigateur, pas son propre chemin d'accès.
-const PUBLIC_URL = (process.env.STUDIO_PUBLIC_URL || 'https://studio.oto.zone').replace(/\/+$/, '');
+const PUBLIC_URL = (process.env.STUDIO_PUBLIC_URL || 'https://studio.otomata.tech').replace(/\/+$/, '');
 
 mkdirSync(WORK, { recursive: true });
 

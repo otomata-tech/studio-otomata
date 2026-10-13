@@ -1,15 +1,24 @@
-# --- studio.oto.zone — studio de visuels (API + IHM, :8100) -------------------
+# --- studio.otomata.tech — studio de visuels (API + IHM, :8100) ---------------
+#     Ex-studio.oto.zone, déplacé le 13/10/2026 (l'ancien nom redirige, bloc suivant).
 #     ⚠️ AUCUNE auth applicative dans le service : l'accès DOIT être fermé par
 #     Cloudflare Access (Zero Trust) AVANT que le record DNS soit créé. Même
 #     règle et même raison que mucho.oto.zone, plus bas dans ce fichier.
-#     Politique Access : les comptes d'Otomata. Un jeton de service viendra s'y
-#     ajouter le jour où le connecteur http d'oto appellera /api/* (en-têtes
-#     CF-Access-Client-Id / CF-Access-Client-Secret — cf. cloudflare-tunnel-ssh.md).
+#     Les agents passent par le réseau privé (172.16.16.3:8100), pas par ce nom.
 #
-#     À recopier dans /data/infra/Caddyfile (box otomata-0), puis scp + validate +
-#     reload selon la procédure en tête de ce fichier-là.
-studio.oto.zone {
-	tls /etc/caddy/origin-certs/oto-zone.pem /etc/caddy/origin-certs/oto-zone.key
+#     Access (posé le 13/10/2026, avant le DNS) :
+#       - app « studio.otomata.tech » (ace77468-…) : règle « Comptes otomata.tech »
+#         (email_domain), session 24 h ;
+#       - app « studio.otomata.tech/brand » (a965f2d4-…) : Bypass → Everyone. Le
+#         chemin le plus spécifique gagne : seuls /brand et /brand/* sont publics
+#         (charte de marque, logos des signatures mail), tout le reste reste fermé.
+#     Un jeton de service viendra s'y ajouter le jour où le connecteur http d'oto
+#     appellera /api/* par ce nom (en-têtes CF-Access-Client-Id / -Secret —
+#     cf. cloudflare-tunnel-ssh.md).
+#
+#     Copie de référence du bloc de /data/infra/Caddyfile (box otomata-0), qui fait foi.
+#     Déploiement : /data/infra/scripts/deploy-caddy.sh, jamais de scp à la main.
+studio.otomata.tech {
+	tls /etc/caddy/origin-certs/otomata-tech.pem /etc/caddy/origin-certs/otomata-tech.key
 
 	# Le service sert l'IHM, l'API, les aperçus et les fichiers produits : un seul
 	# upstream, pas de racine statique locale — les rendus vivent hors du tree servi.
@@ -20,4 +29,15 @@ studio.oto.zone {
 			read_timeout 120s
 		}
 	}
+}
+
+# --- studio.oto.zone — ancien nom du studio, redirection 301 À VIE --------------
+#     ⚠️ NE JAMAIS RETIRER ce bloc, ni le record DNS, ni les apps Access de ce nom
+#     (« studio.oto.zone » cf3b91cc-… et son bypass « studio.oto.zone/brand »
+#     0aa6a201-…) : les signatures mail déjà envoyées chargent
+#     https://studio.oto.zone/brand/logo/mark-256.png. Supprimer quoi que ce soit
+#     ici casse le logo de tous ces mails, sans recours possible.
+studio.oto.zone {
+	tls /etc/caddy/origin-certs/oto-zone.pem /etc/caddy/origin-certs/oto-zone.key
+	redir https://studio.otomata.tech{uri} permanent
 }

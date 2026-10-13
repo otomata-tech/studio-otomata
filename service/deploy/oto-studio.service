@@ -12,8 +12,8 @@ Restart=on-failure
 RestartSec=5
 
 # Deux chemins d'accès, deux publics :
-#   · les HUMAINS passent par Caddy (443) et Cloudflare Access — app « studio.oto.zone »,
-#     règle `email_domain otomata.tech` ;
+#   · les HUMAINS passent par Caddy (443) et Cloudflare Access — app « studio.otomata.tech »
+#     (ex-studio.oto.zone, qui redirige), règle `email_domain otomata.tech` ;
 #   · les AGENTS passent par le Private Network (172.16.16.0/22), sans Cloudflare et sans
 #     secret : c'est le montage du pont Movinmotion. Nécessaire parce que le connecteur
 #     `http` d'oto ne sait poser QU'UN en-tête, là où Access en exige deux — il ne peut

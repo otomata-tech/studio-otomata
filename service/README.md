@@ -21,7 +21,8 @@ sans épinglage devient ambigu dès qu'un second pont existe. Dans un projet oto
 le connecteur porte l'`instance_ref` une fois pour toutes — comme le projet « Administration
 & finances » le fait déjà pour désigner le bon Pennylane.
 
-**Pourquoi le réseau privé et pas l'URL publique.** `studio.oto.zone` est fermé par Cloudflare
+**Pourquoi le réseau privé et pas l'URL publique.** `studio.otomata.tech` (ex-studio.oto.zone, qui
+redirige) est fermé par Cloudflare
 Access, qui exige **deux** en-têtes ; le connecteur `http` d'oto n'en pose **qu'un** (vérifié
 dans `providers/http.py`). Un agent ne peut donc pas franchir Access, quoi qu'on configure. Il
 passe par `http://172.16.16.3:8100`, l'adresse privée d'otomata-0 — sans Cloudflare, sans
@@ -51,7 +52,7 @@ partenaire — elle remplace l'envoi d'un PDF de charte par pièce jointe.
 - `GET /brand/photo/<slug>.jpg` — un portrait publié de l'équipe (liste fermée ; `photos/sources/` reste privé).
 
 **Un seul préfixe, et c'est le point** : une politique Cloudflare Access en **bypass** sur
-`studio.oto.zone/brand` ouvre la charte au public en laissant le reste du studio fermé — le
+`studio.otomata.tech/brand` ouvre la charte au public en laissant le reste du studio fermé — le
 générateur, les rendus, la galerie, l'API. Poser le bypass sur autre chose que ce préfixe
 ouvrirait le pilote de rendu.
 

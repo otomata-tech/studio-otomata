@@ -5,7 +5,10 @@
 // du studio : une image de signature doit être servie en https, une pièce jointe se perd au transfert.
 import { MARQUE } from '../brand/merch/pieces.mjs';
 
-const MARK = 'https://studio.oto.zone/brand/logo/mark-256.png';
+// Nouvelle adresse depuis le 13/10/2026, pour les signatures posées désormais. Les signatures
+// déjà envoyées pointent encore studio.oto.zone/brand/logo/mark-256.png : elles restent servies
+// par la redirection 301 de l'ancien nom, gardée à vie côté infra (Caddyfile + Access).
+const MARK = 'https://studio.otomata.tech/brand/logo/mark-256.png';
 export const C = { ink: '#2c2112', mute: '#6c5e44', primary: '#f0b41e', bg: '#fefcf5' };
 export const POLICE = 'Arial,Helvetica,sans-serif';
 

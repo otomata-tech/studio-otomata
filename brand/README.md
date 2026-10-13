@@ -82,8 +82,8 @@ Une évolution du dessin ou des jetons se décide sur le design system, puis se 
 - `cowork-logo-sur-sombre.svg` — le même, le nom en crème
 
 ### Publiée en ligne
-- **`studio.oto.zone/brand/cowork`** — la charte **publique** : logos (SVG et PNG transparents), palette lue dans `cowork/tokens.json`, typo, les quatre tons d'affiche avec un exemple chacun.
-- **`studio.oto.zone/kit/cowork`** — le kit (derrière Access) : un visuel par emplacement LinkedIn, dans le langage des affiches.
+- **`studio.otomata.tech/brand/cowork`** — la charte **publique** : logos (SVG et PNG transparents), palette lue dans `cowork/tokens.json`, typo, les quatre tons d'affiche avec un exemple chacun.
+- **`studio.otomata.tech/kit/cowork`** — le kit (derrière Access) : un visuel par emplacement LinkedIn, dans le langage des affiches.
 - **Le gabarit « Affiche du Cowork de l'IA »** du générateur (`affiche-cowork`) — une affiche à soi : un événement, une offre.
 
 Le ton (guide du design system) : prix toujours avec « HT » et son unité, lieu « Marseille 6e » et
@@ -91,7 +91,8 @@ jamais d'adresse avant la signature du bail, jamais d'emoji, jamais de chiffre n
 
 ## Publiée en ligne
 
-La charte est servie par le studio sur **`studio.oto.zone/brand`** — mark et déclinaisons,
+La charte est servie par le studio sur **`studio.otomata.tech/brand`** (ex-studio.oto.zone, qui
+redirige) — mark et déclinaisons,
 palette lue dans `theme/theme.css`, typographie, fichiers d'impression du merch, tout
 téléchargeable. C'est cette page qu'on donne à un tiers, plutôt qu'un PDF en pièce jointe.
 Le code : `studio-otomata/service/brand.mjs` + `service/web/brand.html`.
@@ -102,7 +103,7 @@ Le code : `studio-otomata/service/brand.mjs` + `service/web/brand.html`.
 - `charte-graphique.pdf` / `.html` — **charte graphique Otomata**, le document à envoyer à un tiers (presta, imprimeur, client). Aligné sur la palette `@otomata/ui`.
 - `palette.svg` — planche de la palette
 
-**2026-10-05 — le Drive `identite/` ne porte plus de copie de la charte ni des logos.** La copie a dérivé : sa recette ne recopiait pas les logos, l'ancien glyphe y est resté après le 03/09 et a été publié sur la fiche France Num. Un tiers reçoit `studio.oto.zone/brand`, un agent lit ce dossier. `identite/README.md` n'est plus qu'un pointeur vers ici (il garde les photos d'équipe et le merch t-shirt).
+**2026-10-05 — le Drive `identite/` ne porte plus de copie de la charte ni des logos.** La copie a dérivé : sa recette ne recopiait pas les logos, l'ancien glyphe y est resté après le 03/09 et a été publié sur la fiche France Num. Un tiers reçoit `studio.otomata.tech/brand`, un agent lit ce dossier. `identite/README.md` n'est plus qu'un pointeur vers ici (il garde les photos d'équipe et le merch t-shirt).
 
 ### `slider/` — charte de slides Otomata
 Charte maison pour le moteur [`otomata-tech/slider`](https://github.com/otomata-tech/slider) : `tokens.json` (palette reprise de `theme/theme.css`) + logos (**le mark Otomata et l'open O d'oto** ; le glyphe violet en est parti le 2026-09-03). Le moteur ignore `chartes/*` sauf son placeholder `blank`, donc la charte vit ici et s'y monte par lien symbolique — voir `slider/README.md`. Avant, aucune charte Otomata n'existait : tout deck sortant sous notre nom était re-charté à la main.

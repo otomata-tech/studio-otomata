@@ -54,8 +54,8 @@ ssh otomata-0 'sudo systemctl enable --now oto-studio && \
 
 # 4. Cloudflare Access AVANT le DNS (l'ordre compte : voir plus bas)
 # 5. le vhost : recopier service/deploy/caddy-studio.snippet dans /data/infra/Caddyfile,
-#    puis scp + caddy validate + systemctl reload caddy (procédure en tête de ce fichier)
-# 6. le record DNS studio.oto.zone (proxied) — EN DERNIER
+#    commit, puis /data/infra/scripts/deploy-caddy.sh (jamais de scp à la main)
+# 6. le record DNS studio.otomata.tech (proxied) — EN DERNIER
 ```
 
 ## Déploiement continu : la box tire, personne ne pousse
@@ -96,7 +96,7 @@ le régime « main = preprod » du reste de la plateforme, appliqué à un outil
 ## L'ordre n'est pas négociable
 
 Le service **n'a aucune authentification**. Tant que la politique Cloudflare Access n'est
-pas posée, le nom `studio.oto.zone` ne doit pas résoudre : créer le DNS d'abord, c'est
+pas posée, le nom `studio.otomata.tech` ne doit pas résoudre : créer le DNS d'abord, c'est
 publier un pilote de rendu ouvert. C'est la règle déjà écrite pour `mucho.oto.zone`, pour
 exactement la même raison.
 
@@ -106,7 +106,7 @@ Dans Zero Trust → Access → Applications, une application **self-hosted** :
 
 | champ | valeur |
 |---|---|
-| domaine | `studio.oto.zone` (chemin vide : toute l'app, IHM **et** API) |
+| domaine | `studio.otomata.tech` (chemin vide : toute l'app, IHM **et** API) |
 | politique | *Allow* sur `Emails` → les comptes d'Otomata qui doivent produire des visuels |
 | durée de session | 24 h suffit (l'IHM ne garde aucun état côté navigateur) |
 
@@ -122,6 +122,11 @@ un chemin qui n'a pas lieu d'être.
 **Posé le 2026-09-02 sur otomata-0** : checkout `/opt/oto-studio`, unité active et activée
 au démarrage, port **8100** inscrit dans `/opt/ports.conf`, vhost `studio.oto.zone` fermé
 par Cloudflare Access, connecteur `http` d'org (`org:2:http:studio`) sur l'adresse privée.
+
+**Déplacé le 2026-10-13 sur `studio.otomata.tech`** (ex-studio.oto.zone, qui redirige en 301 à vie) :
+deux apps Access jumelles (le nom nu, et `/brand` en bypass) créées avant le DNS. L'ancien nom, son
+record DNS et ses deux apps Access restent en place : les signatures mail déjà envoyées y chargent
+`/brand/logo/mark-256.png`. Les agents, sur le réseau privé, ne sont pas concernés.
 
 Mesures réelles sur la box (à jour du passage des images intermédiaires en JPEG) :
 

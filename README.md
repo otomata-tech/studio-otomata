@@ -139,7 +139,8 @@ node emails/poser-signature.mjs signatures@otomata-workspace.iam.gserviceaccount
   lit après toute retouche — OpenCV échoue sur certaines vCards valides (accents), zxing-cpp fait foi
   (`pip install zxing-cpp`). Points ronds et repères arrondis ont été écartés : moins lisibles.
 - **Signature** : HTML de mail (tableaux, styles en ligne, Arial — un client mail ne charge pas nos
-  polices) ; le mark est servi par `studio.oto.zone/brand/logo/mark-256.png`. La page générée a un bouton
+  polices) ; le mark est servi par `studio.otomata.tech/brand/logo/mark-256.png` (ex-studio.oto.zone, qui redirige :
+  les signatures déjà envoyées gardent leur logo). La page générée a un bouton
   qui copie la signature rendue, à coller dans Gmail → Paramètres → Signature.
 - **Pose en admin** (`poser-signature.mjs`) : délégation à l'échelle du domaine **sans clé**. Le compte de
   service `signatures@otomata-workspace` (créé le 2026-10-06) n'a aucune clé téléchargée : l'admin connecté à

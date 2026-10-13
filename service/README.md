@@ -73,11 +73,9 @@ d'ouverture. Le refus répond `403 {"error":"accès refusé"}` ; la raison ne va
 ⚠️ **Recréer l'app Access change son AUD** : il faut le relever à nouveau dans `acces.mjs`, sinon
 tout humain est refusé (le journal dit alors « audience inattendue »).
 
-**Mode** : constante `MODE_ACCES` de `server.mjs`. En `'observation'` (posé le 13/10/2026), le verdict
-est journalisé (`journalctl -u oto-studio | grep '\[accès\]'`) et rien n'est bloqué — on ne peut pas
-obtenir de vrai jeton sans connexion humaine, et un contrôle faux aurait enfermé l'équipe dehors. En
-`'exige'`, ce qui n'est pas libre sans jeton valide reçoit 403. Tant qu'on est en observation, Access
-reste contournable.
+Chaque refus laisse une ligne au journal avec sa raison (`journalctl -u oto-studio | grep '\[accès\]'`).
+Le contrôle a tourné en observation le 13/10/2026, le temps de voir une vraie visite reconnue valide,
+puis il bloque depuis le même jour.
 
 Tests : `node --test 'service/*.test.mjs'` (paire RSA et jeu de clés fabriqués par le test, la prod n'est pas
 sollicitée).

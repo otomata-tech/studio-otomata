@@ -28,14 +28,6 @@ const KEEP = Number(process.env.STUDIO_KEEP || 60);   // travaux gardés dans la
 // celui qu'on peut ouvrir dans un navigateur, pas son propre chemin d'accès.
 const PUBLIC_URL = (process.env.STUDIO_PUBLIC_URL || 'https://studio.otomata.tech').replace(/\/+$/, '');
 
-/* 13/10/2026 — OBSERVATION. Le contrôle d'accès tourne, JOURNALISE son verdict
-   (`journalctl -u oto-studio | grep '\[accès\]'`) et laisse tout passer : on ne peut pas
-   obtenir de vrai jeton sans une connexion humaine, et un contrôle faux enfermerait l'équipe
-   dehors. À passer à 'exige' DÈS qu'une visite réelle a été vue « jeton valide » dans le
-   journal — ce mode n'a pas vocation à durer : tant qu'il est là, Access reste contournable. */
-const MODE_ACCES = 'observation';   // 'observation' | 'exige'
-if (!['observation', 'exige'].includes(MODE_ACCES)) throw new Error(`MODE_ACCES inconnu : ${MODE_ACCES}`);
-
 mkdirSync(WORK, { recursive: true });
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -289,19 +281,14 @@ function serveWeb(name, res) {
 /* ---------- accès ---------- */
 
 /** La requête a-t-elle le droit de passer ? Décidé AVANT tout routage, sur le pair TCP et le
- *  jeton Access (cf. acces.mjs). En observation, le verdict est journalisé et rien n'est bloqué. */
+ *  jeton Access (cf. acces.mjs). Un refus est journalisé avec sa raison, qui ne part pas au client. */
 async function autorise(req, chemin) {
   const pair = req.socket.remoteAddress;
   const besoin = exigence(pair, chemin);
   if (besoin === 'libre') return true;
   const verdict = besoin === 'refus' ? { ok: false, raison: 'pair non autorisé' }
     : await jetonAccess.verifie(req.headers['cf-access-jwt-assertion']);
-  const ligne = `${req.method} ${chemin} pair=${pair} → ${verdict.ok ? `valide (${verdict.email})` : `invalide : ${verdict.raison}`}`;
-  if (MODE_ACCES === 'observation') {
-    console.error(`[accès] observation ${ligne}`);
-    return true;
-  }
-  if (!verdict.ok) console.error(`[accès] ${ligne}`);
+  if (!verdict.ok) console.error(`[accès] ${req.method} ${chemin} pair=${pair} → refusé : ${verdict.raison}`);
   return verdict.ok;
 }
 

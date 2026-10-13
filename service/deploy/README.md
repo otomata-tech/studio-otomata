@@ -97,7 +97,7 @@ le régime « main = preprod » du reste de la plateforme, appliqué à un outil
 
 Le service ne connaît pas les comptes : il vérifie le jeton émis par Cloudflare Access (depuis
 le 13/10/2026, cf. `../README.md` § « Accès »), ce qui suppose l'application Access en place —
-sans elle, aucun jeton, et selon `MODE_ACCES` tout est refusé ou tout passe. Tant que la
+sans elle, aucun jeton, et tout humain est refusé. Tant que la
 politique Cloudflare Access n'est pas posée, le nom `studio.otomata.tech` ne doit pas résoudre : créer le DNS d'abord, c'est
 publier un pilote de rendu ouvert. C'est la règle déjà écrite pour `mucho.oto.zone`, pour
 exactement la même raison.

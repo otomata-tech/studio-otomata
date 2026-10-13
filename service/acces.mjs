@@ -22,6 +22,17 @@ export const AUD = 'e3d0829ae44d02381799a790bf965d3469fabb31888ee8d318d18ceef55f
 export const DOMAINE = 'otomata.tech';
 const CERTS = `${EMETTEUR}/cdn-cgi/access/certs`;
 
+/* ---------- les agents ----------
+   Les adresses EXACTES d'où le connecteur oto `org:2:http:studio` appelle le service, en direct
+   sur le réseau privé (http://172.16.16.3:8100). Relevée le 13/10/2026 sur otomata-0 pendant un
+   appel `http_get(_instance="org:2:http:studio", path="/api/marques")` :
+   - 172.16.16.5 : oto-platform (fr-par-2), qui porte le backend mcp.oto.cx — les deux couleurs
+     du bleu/vert y tournent, même adresse (/data/infra/docs/serveurs.md).
+   Pas tout 172.16.0.0/12 : la box y a aussi ses réseaux Docker (172.17–172.20), et d'autres
+   machines partagent le réseau privé. Le backend change de box → relever la nouvelle adresse
+   (le journal la montre : « [accès] … pair=<ip> → invalide : pair non autorisé »). */
+const AGENTS = new Set(['172.16.16.5']);
+
 const TOLERANCE_S = 60;              // décalage d'horloge admis sur exp / nbf
 const RECHARGE_MIN_MS = 30_000;      // un kid inconnu ne fait pas marteler Cloudflare
 const AGE_MAX_MS = 12 * 3600_000;    // les clés retirées par une rotation finissent par sortir
@@ -41,9 +52,9 @@ export function exigence(pair, chemin) {
   const ip = normalise(pair);
   // Loopback = Caddy, donc Cloudflare. /brand est en bypass Access : aucun jeton n'arrive.
   if (estLoopback(ip)) return chemin === '/brand' || chemin.startsWith('/brand/') ? 'libre' : 'jeton';
-  // Réseau privé : les agents (connecteur oto org:2:http:studio). Le port 8100 est fermé à
-  // Internet par le groupe de sécurité, seul ce réseau l'atteint en direct.
-  if (estPrive(ip)) return 'libre';
+  // Les agents (connecteur oto org:2:http:studio), à leur adresse exacte. Toute autre adresse,
+  // réseau privé compris, est un pair inconnu.
+  if (AGENTS.has(ip)) return 'libre';
   return 'refus';
 }
 
@@ -55,11 +66,6 @@ function octets(ip) {
   return m && m.slice(1).map(Number).every(n => n <= 255) ? m.slice(1).map(Number) : null;
 }
 const estLoopback = ip => ip === '::1' || octets(ip)?.[0] === 127;
-/** 172.16.0.0/12 : 172.16.0.0 → 172.31.255.255. */
-function estPrive(ip) {
-  const o = octets(ip);
-  return !!o && o[0] === 172 && o[1] >= 16 && o[1] <= 31;
-}
 
 /* ---------- le jeton ---------- */
 

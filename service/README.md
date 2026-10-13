@@ -56,8 +56,12 @@ La règle se décide sur le **pair TCP** (`req.socket.remoteAddress`), jamais su
 | tout pair | `/healthz` | libre (sonde de `update.sh`) |
 | loopback (= Caddy, donc Cloudflare) | `/brand`, `/brand/*` | libre — bypass Access, Cloudflare n'y envoie **pas** de jeton |
 | loopback | tout le reste (IHM, `/kit`, `/api/*`, `/r/*`, `/files/*`, `/openapi.json`…) | jeton Access valide exigé |
-| réseau privé `172.16.0.0/12` | tout | libre — les agents (`http://172.16.16.3:8100`) |
-| tout autre pair | tout | refus |
+| `172.16.16.5` (oto-platform, le backend d'oto) | tout | libre — les agents, connecteur `org:2:http:studio` (`http://172.16.16.3:8100`) |
+| tout autre pair, **réseau privé compris** (Docker de la box, autres machines du PN) | tout | refus |
+
+L'adresse des agents est une constante de `acces.mjs` (`AGENTS`), relevée le 13/10/2026. Si le
+backend d'oto change de box, ses appels sont refusés et le journal montre la nouvelle adresse
+(`pair=<ip> → invalide : pair non autorisé`) : la relever et l'ajouter.
 
 Un jeton valide (`Cf-Access-Jwt-Assertion`) : signé RS256 par une clé de
 `https://otomata-tech.cloudflareaccess.com/cdn-cgi/access/certs` (mises en cache, rechargées sur `kid`

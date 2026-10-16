@@ -14,12 +14,20 @@ texte markdown + frontmatter  ──pandoc──▶  HTML  ──gabarit + otoma
 
 ```bash
 python3 /mnt/otomata-shared/admin/legal/md2pdf.py <fichier>.md [sortie.pdf]
+python3 /mnt/otomata-shared/admin/legal/md2pdf.py <fichier>.md --assemble-only [-o assemble.md]   # Markdown assemblé, sans PDF
 ```
 
 - **Le texte** est un fichier `.md` rangé avec son sujet (le dossier du projet sur le Drive ou sur le
   poste, par exemple `strategy/bp-2026/`, `/data/cowork/`). Son frontmatter YAML choisit le gabarit et
   renseigne le titre, le sous-titre, le tag, le projet, la date. Le `.md` est la source : on ne retouche
   jamais un PDF, on régénère.
+- **Les blocs** : une ligne seule `<!-- include: chemin/bloc.md -->` est remplacée par le contenu du bloc
+  avant le rendu (ajouté le 2026-10-17, à la demande de « financement stratégie », pour écrire une seule
+  fois un contenu repris par plusieurs livrables, par exemple `strategy/bp-2026/blocs/` et `documents/`).
+  Le chemin est relatif au fichier qui contient la ligne ; les inclusions s'imbriquent ; un fichier manquant
+  ou une boucle arrête le script avec une erreur ; le frontmatter d'un bloc inclus est ignoré, seul celui du
+  document fait foi. `--assemble-only` écrit le Markdown assemblé (dans `-o`, sinon sur la sortie standard) :
+  pour un contrôle par diff ou un texte à coller dans un formulaire.
 - **Le script** `md2pdf.py` : pandoc convertit le markdown en HTML (`--section-divs`), le gabarit
   l'habille, weasyprint imprime. Un placeholder sans valeur ou un gabarit inconnu est une erreur, pas un
   blanc. Le docstring du script fait foi pour les clés du frontmatter.

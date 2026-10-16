@@ -39,12 +39,13 @@ python3 /mnt/otomata-shared/admin/legal/md2pdf.py <fichier>.md [sortie.pdf]
 | `contract` | contrat, accord, pièces d'un dossier de financement | Otomata | sobre, titre centré, filet saffran, bloc de signatures Yousign |
 | `acte` | PV de décisions, attestation, pouvoir | Otomata | sobre, sans logo |
 | `oto` | documents du **produit** oto (l'open O) | oto | bande saffran à fond perdu en page 1, open O en négatif |
-| `affiche` | documents du **Cowork de l'IA** qui doivent donner envie (executive summary, dossier de présentation) ; l'exec summary d'Otomata | Cowork (ton `mer`), Otomata (ton `encre`) | affiche risographie en bandeau de tête, une encre pour les titres, chiffres clés, encart saffran |
+| `affiche` | documents du **Cowork de l'IA** qui doivent donner envie (executive summary, dossier de présentation) | Cowork | affiche risographie en bandeau de tête, encre bleu mer, chiffres clés, encart saffran |
+| `synthese` | documents d'**Otomata** qui doivent donner envie (executive summary) | Otomata | langage d'affiche d'Otomata : mark rogné en haut à droite, titre encre + saffran encré, mono, filets d'encre, chiffres clés |
 
 **Les documents d'Otomata gardent leur style sobre** (décision d'Alexis du 2026-10-13) : le gabarit
-`affiche` est celui du Cowork. Seule exception, l'exec summary d'Otomata (`strategy/bp-2026/`), qu'Alexis
-a voulu graphique « comme le Cowork » le 2026-10-16 : ton `encre` (la face encre de l'accueil
-d'otomata.tech), marque `otomata`.
+`affiche` est celui du Cowork, il ne s'applique pas à un document Otomata. Un document d'Otomata qui doit
+donner envie (l'exec summary) prend `synthese`, au style d'Otomata (Alexis, 2026-10-16 : du graphisme
+« comme le Cowork », mais l'affiche du Cowork était « trop Cowork »).
 
 ## Qui fait autorité, et où
 

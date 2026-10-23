@@ -209,9 +209,14 @@ async function doRender({ html, dir, width, height, fps = 25, formats, scale = 1
       writeFileSync(`${fdir}/frame_${String(f).padStart(4, '0')}.jpg`, Buffer.from(data, 'base64'));
     }
 
+    // Les JPEG sont en pleine échelle (0-255) : sans conversion explicite, le MP4 sortait en
+    // yuvj420p marqué « pc », que les lecteurs et LinkedIn lisent comme une échelle réduite :
+    // le crème virait au blanc et les teintes saturaient (constaté sur le cas d'usage n° 2, 23/10).
     const mp4 = `${dir}/visuel.mp4`;
-    ffmpeg(['-framerate', String(fps), '-i', `${fdir}/frame_%04d.jpg`, '-c:v', 'libx264',
-      '-pix_fmt', 'yuv420p', '-crf', '18', '-movflags', '+faststart', mp4]);
+    ffmpeg(['-framerate', String(fps), '-i', `${fdir}/frame_%04d.jpg`,
+      '-vf', 'scale=in_range=pc:out_range=tv:out_color_matrix=bt709,format=yuv420p',
+      '-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'iec61966-2-1',
+      '-c:v', 'libx264', '-crf', '18', '-movflags', '+faststart', mp4]);
     files.mp4 = 'visuel.mp4';
 
     if (formats.includes('gif')) {
